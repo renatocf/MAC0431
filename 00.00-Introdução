@@ -1,0 +1,35 @@
+Introdução
+===========
+
+* Livro
+    - High Performance Computing (O'Reilly, Severance & Dowd)
+    - The art of Computer Systems Performance Analysis (Jain)
+
+* Foco em programação paralela e alto desempenho
+
+* Programa
+    - Revisão de concorrência
+    - Otimização (sequencial / paralela)
+    - Intrinsics
+        - Acesso a instruções de máquina especiais
+    - Benchmarking
+    - Modelagem de desempenho
+    - Algoritmos distribuídos
+
+    - Paralelismo
+        - Memória compartilhada
+            - Processos
+            - Threads
+            - OpenMP
+        - Memória distribuída
+            - MPI
+            - GPU (cuda)
+
+* Avaliação
+    - MP = (P1 + 2*P2)/3
+    - Sub aberta (toda matéria)
+    - Listas + 1 EP ("desafio final")
+
+* EP
+    - Problema de processamento pesado (bom bastante contas)
+    - Grupos (para tentar resolver no menor tempo possível)
