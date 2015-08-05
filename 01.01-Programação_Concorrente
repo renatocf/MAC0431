@@ -1,0 +1,274 @@
+Programação Concorrente
+========================
+
+* Paralelo x Distribuído
+    - O paralelismo / distribuição são ideias muito antigas - são usadas
+      para executar qualquer tipo de trabalho, quando as tarefas são
+      divididas para serem feitas entre vários trabalhadores.
+
+    - O processamento paralelo é geralmente utilizado buscando
+      desempenho (geralmente, para fazer contas - ex: processamento de
+      genomas, cálculos metereológicos, previsão do tempo, etc.)
+      - Em geral, vamos usar o paralelismo ou para diminuir o tempo
+        de um certo processamento, ou, no mesmo tempo, aumentar o
+        volume de informação utilizada.
+      - Ex: no processamento metereológico, em geral, existe uma grade
+            que pode simular as condições do planeta todo.
+
+    - O processamento distribuído é geralmente utilizado buscando o
+      compartilhamento de recursos (geralmente, para oferecer um serviço
+      em vários lugares diferentes, que precisam ser coordenados - ex:
+      agências de viagens, reserva de passagens, etc.)
+
+* Alto desempenho
+    - Para fazermos computação de alto desempenho, podemos utilizar
+      uma série de recursos:
+      - Algoritmos
+        - Um algoritmo de complexidade menor sempre será melhor,
+          mas pode perder para um menos eficiente dependendo do
+          tamanho do problema (entrada).
+          - Ex: O `inserction sort` costuma ser usado para sequências
+                pequenas no lugar do `quicksort`.
+        - Alguns algoritmos, embora tenham pior caso ruim, podem ser
+          bons no caso médio e funcionar bem na prática.
+          - Ex: O algoritmo simplex é exponencial no pior caso, mas
+                no caso médio ganha da maioria dos algoritmos
+                polinomiais que resolvem o problema.
+        - Quando podemos fazer paralelismo, às vezes vale a pena
+          usar um algoritmo pior, paralelizável, do que um algoritmo
+          com complexidade melhor que seja apenas sequencial.
+
+      - Otimização de código
+        - Os compiladores, por si próprios, já fazem vários truques
+          para se aproveitar da capacidade do hardware. Em especial,
+          eles tentam *preservar* as instruções mais utilizadas ou
+          prever as que serão utilizadas logo, diminuindo o tempo
+          de acesso. Algunas técnicas usadas são:
+          - Cache:    os processadores têm vários caches, e utilizá-los
+                      pode melhorar *muito* o tempo de acesso às
+                      instruções e dados.
+          - Pipeline: a pileline fetch-decode-execute pode ser
+                      otimizada, a nível de microprograma, modificando
+                      a ordem das instruções de forma a se aproveitar
+                      melhor de estruturas que poderiam ser usadas
+                      paralelamente. 'Hyperthread' pode ser utilizado,
+                      também, para fazer o 'fetch-decode' enquanto
+                      outro passo está no 'execute'.
+          - TLB:      a 'Table Lookaside Buffer' ajuda mantendo as
+                      páginas (em memória paginada) utilizadas
+                      recentemente com acesso mais rápido - o que
+                      ajuda muito o tempo por conta da localidade
+                      espacial e temporal dos algoritmos.
+
+      - Concorrência
+        - Utilizar vários processos ou threads em uma máquina multicore
+          ou de forma distribuída em uma rede pode aumentar a
+          velocidade do processamento, dividindo-o entre vários
+          processos / threads. Idealmente, o tempo ficaria
+          proporcionalmente menor. Porém, existe um custo em alocar
+          estes recursos.
+
+* Exemplo de programa concorrente.
+
+    | #include <unistd.h>
+    | #include <sys/wait.h>
+    | #include <sys/shm.h>
+    | #include <stdio.h>
+    |
+    | typedef struct {
+    |     volative int x;
+    | };
+    |
+    | /* Exta variável será compartilhada entre dois processos */
+    | SHARED *Comp;
+    |
+    | int main(int argc, char **argv)
+    | {
+    |     int i;
+    |     int smid;
+    |
+    |     /* `shmget` aloca um bloco de memória compartilhada e  */
+    |     /* retorna um 'handle' (com um handler para um arquivo */
+    |     /* - um ponteiro).                                     */
+    |     /* 'shm', no nome, significa 'shared memory'. */
+    |     smid = shmget(42,                   /* identificador */
+    |                   sizeof(SHARED)        /* tamanho do bloco */
+    |                   IPC_CREAT | 0600);    /* permissão de acesso */
+    |                 /* ^           ^
+    |                  * |           Só terá permissão leitura/escrita
+    |                  * |           na memória o próprio processo que
+    |                  * |           o criou (0600).
+    |                  * '- IPC = Inter Process Communication -
+    |                  *          biblioteca muito antiga, do Unix,
+    |                  *          para pegar o processo.
+    |                  */
+    |
+    |     /* `shmat` retorna um ponteiro para a região compartilhada */
+    |     Comp = (SHARED *) shmat(smid, 0, 0);
+    |
+    |     /*
+    |      * O par `shmget` e `shmat` faz a função do `malloc` dividida
+    |      * em duas: primeiro aloca a memória, e depois devolve o seu
+    |      * endereço.
+    |      */
+    |
+    |     /* Chamamos `fork` para criar processos */
+    |     if ((fork()) == 0) {
+    |         /* Filho */
+    |         int y;
+    |
+    |         for (i = 0; i < 5000000; i++) {
+    |             y = Comp->x;
+    |             y += 2;
+    |             Comp->x = y;
+    |         }
+    |     }
+    |     else {
+    |         /* Processo pai */
+    |         int y;
+    |
+    |         for (i = 0; i < 5000000; i++) {
+    |             y = Comp->x;
+    |             y += 2;
+    |             Comp->x = y;
+    |         }
+    |
+    |         /* espera o processo filho terminar */
+    |         wait(NULL);
+    |
+    |         /* imprime o valor final */
+    |         printf("x = %d\n", Comp->x);
+    |     }
+    |
+    |     /*
+    |      * Remove o handle para o bloco de memória. Isso precisa
+    |      * ser feito para ambos os processos, para que depois o
+    |      * sistema operacional remova a memória.
+    |      */
+    |     shmctl(smid, IPC_RMID, NULL);
+    |
+    |     return 0;
+    | }
+
+    - Esse programa não tem nenhum tipo de sincronização. Logo, podemos
+      obter números arbitrários, segundo o chaveamento dos processos.
+
+* Exemplo de programa concorrente.
+
+    | #include <unistd.h>
+    | #include <sys/wait.h>
+    | #include <sys/shm.h>
+    | #include <stdio.h>
+    |
+    | typedef struct {
+    |     volative int x;
+    |     volative int enter1;
+    |     volative int enter2;
+    |     volative int turn;
+    | };
+    |
+    | /* Exta variável será compartilhada entre dois processos */
+    | SHARED *Comp;
+    |
+    | int main(int argc, char **argv)
+    | {
+    |     int i;
+    |     int smid;
+    |     int sim = argc > 1;
+    |
+    |     /* `shmget` aloca um bloco de memória compartilhada e  */
+    |     /* retorna um 'handle' (com um handler para um arquivo */
+    |     /* - um ponteiro).                                     */
+    |     /* 'shm', no nome, significa 'shared memory'. */
+    |     smid = shmget(42,                   /* identificador */
+    |                   sizeof(SHARED)        /* tamanho do bloco */
+    |                   IPC_CREAT | 0600);    /* permissão de acesso */
+    |                 /* ^           ^
+    |                  * |           Só terá permissão leitura/escrita
+    |                  * |           na memória o próprio processo que
+    |                  * |           o criou (0600).
+    |                  * '- IPC = Inter Process Communication -
+    |                  *          biblioteca muito antiga, do Unix,
+    |                  *          para pegar o processo.
+    |                  */
+    |
+    |     /* `shmat` retorna um ponteiro para a região compartilhada */
+    |     Comp = (SHARED *) shmat(smid, 0, 0);
+    |
+    |     /*
+    |      * O par `shmget` e `shmat` faz a função do `malloc` dividida
+    |      * em duas: primeiro aloca a memória, e depois devolve o seu
+    |      * endereço.
+    |      */
+    |
+    |     /* Chamamos `fork` para criar processos */
+    |     if ((fork()) == 0) {
+    |         /* Filho */
+    |         int y, j;
+    |
+    |         for (i = 0; i < 5000; i++) {
+    |             /* Protocolo de entrada */
+    |             if (sim) {
+    |                 Comp->enter1 = 1;
+    |                 Comp->turn   = 2;
+    |                 while (Comp->enter2 == 1 && Comp->turn == 2)
+    |                   usleep(1);
+    |             }
+    |
+    |             /* Seção crítica */
+    |             for (j = 0; j < 5000; j++) {
+    |                y = Comp->x;
+    |                y += 2;
+    |                Comp->x = y;
+    |             }
+    |
+    |             /* Seção crítica */
+    |             Comp->enter1 = 0;
+    |         }
+    |     }
+    |     else {
+    |         /* Processo pai */
+    |         int y;
+    |
+    |         for (i = 0; i < 1000; i++) {
+    |             /* Protocolo de entrada */
+    |             if (sim) {
+    |                 Comp->enter2 = 1;
+    |                 Comp->turn   = 1;
+    |                 while (Comp->enter1 == 1 && Comp->turn == 1)
+    |                   usleep(1);
+    |             }
+    |
+    |             for (j = 0; j < 5000; j++) {
+    |                 y = Comp->x;
+    |                 y += 2;
+    |                 Comp->x = y;
+    |             }
+    |
+    |             /* Seção crítica */
+    |             Comp->enter2 = 0;
+    |         }
+    |
+    |         /* espera o processo filho terminar */
+    |         wait(NULL);
+    |
+    |         /* imprime o valor final */
+    |         printf("x = %d\n", Comp->x);
+    |     }
+    |
+    |     /*
+    |      * Remove o handle para o bloco de memória. Isso precisa
+    |      * ser feito para ambos os processos, para que depois o
+    |      * sistema operacional remova a memória.
+    |      */
+    |     shmctl(smid, IPC_RMID, NULL);
+    |
+    |     return 0;
+    | }
+
+    - Essa solução (algoritmo Tie-Breaker/Dekker) só funciona bem para
+      dois processos. Ela utiliza 'busy waiting' (espera ocupada), em
+      que tempo de processamento é gasto com verificações.
+    - Embora não seja tão boa quanto mecanismos mais poderosos
+      (semáforos, monitores, etc.). Porém, ainda é usada em sistemas
+      embarcados (placas de rede, sistemas de tempo real, etc).
