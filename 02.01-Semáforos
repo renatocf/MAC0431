@@ -1,0 +1,36 @@
+Programação Concorrente com Semáforos
+======================================
+
+* Na última aula vimos como fazer sincronização pelo método 'busy
+  waiting', que desperdiça tempo de processamento / energia rodando.
+
+* Existem métodos mais interessantes e eficientes. Os semáforos,
+  idealizados por Dijkstra, operam diretamente por meio do sistema
+  operacioanal controlando o chaveamento dos processos conforme
+  as variáveis são setadas (V) e resetadas (P).
+
+* O exemplo 02.02-semaphore.c mostra como funcionam as chamadas de
+  sistema que implementam semáforos no SO, e as aplica para sincronizar
+  diferentes processos. Para compilar o arquivo, basta utilizar:
+    | gcc -D_XOPEN_SOURCE -ansi -Wall -Wextra -Werror -pedantic
+    |     02.02-semaphore.c -o 02.02-semaphore
+
+* O exemplo 02.03-pthread_mutex.c mostra o funcionamento de semáforos
+  com threads. Essa biblioteca (POSIX Threads) dá suporte à administração
+  de diferentes linhas de processamento dentro de um mesmo processo
+  (threads), que em geral possuem custo menor que o de processos (e
+  por isso conhecidos como "processos leves"). Em vez de semáforos
+  contadores, utilizamos 'mutex', que funcionam como semáforos
+  binários que travam / destravam (lock / unlock) o acesso à região
+  crítica dos processos. Para compilar o arquivo, basta utilizar:
+    | gcc -ansi -Wall -Wextra -Werror -pedantic
+    |     02.03-pthread.c -o 02.03-pthread -pthread
+
+* Para testarmos a eficiência de nossos programas, podemos usar o
+  monitor do sistema operacional para ver o aumento / diminuição
+  da atividade do processador conforme as threads rodam em
+  diferentes CPUs. O utilitário 'time' também é útil, apresentando
+  o tempo total, de processamento e de sistema usados ao rodar o
+  programa. (O tempo de sistema, sys, pode ser maior que o tempo
+  total, se o processamento ocorreu em paralelo).
+
