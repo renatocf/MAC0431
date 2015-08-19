@@ -1,0 +1,292 @@
+Análise de dependências
+========================
+
+* Consideremos o seguinte programa, com várias variáveis:
+
+    | 01. a = 2               a:M
+    | 02. b = 5               b:M
+    | 03. c = a + b           c:M a:U b:U
+    | 04. d = 3 * a           d:M a:U
+    | 05. e = a * b + c * d   e:M a:U b:U c:U d:U
+    | 06. f = 2 * b           f:M b:U
+    | 07. g = d - f           g:M d:U b:U
+    | 08. f = a + e           f:M a:U e:U
+    | 09. i = 42              i:M
+    | 10. j = f - a           j:M f:U a:U
+
+* Podemos montar um grafo de dependência baseado nas modificações / usos
+  das variáveis. Cada aresta é montada verificando qual a última linha
+  de código que utilizou a variável:
+
+                     .-.-----(1)     (2)     (9) 
+                     | |    / | \   / . \
+                     | | (4)  |  (3).´   (6)
+                     | |    \`|./ .´    /
+                     | |     \|/.´.    /
+                     | |     (5)   `.(7)
+                     | |        \   /
+                     | '---------(8)
+                     |          /
+                     '------(10)
+
+* As dependências podem ser classificadas em 4 categorias:
+    - M → U: chamada de "dependência verdadeira"
+    - U → M: chamada de "anti-dependência" (porque é o contrário da 1ª)
+    - M → M: chamada de "dependência de saída"
+    - U → U: não é uma dependência (variável não modificada)
+
+    - Somente a dependência M → U é chamada de "verdadeira" porque as
+      outras duas podem ser facilmente removidas trocando o nome das
+      variáveis utilizadas. Se reescrevermos as instruções 8-10 trocando
+      a variável 'f' por 'h', o programa fica:
+
+        | ...
+        | 07. g = d - f           g:M d:U b:U
+        | 08. h = a + e           h:M a:U e:U
+        | 09. i = 42              i:M
+        | 10. j = h - a           j:M h:U a:U
+
+      E o novo grafo de dependências será:
+
+                     .-.-----(1)     (2)     (9) 
+                     | |    / | \   / . \
+                     | | (4)  |  (3).´   (6)
+                     | |    \`|./ .´    /
+                     | |     \|/.´.    /
+                     | |     (5)   `.(7)
+                     | |        \
+                     | '---------(8)
+                     |          /
+                     '------(10)
+
+    - Pelo processo de troca de variáveis, conseguimos eliminar
+      totalmente as anti-dependências e as dependências verdadeiras.
+
+    - "Limpando" o programa e mantendo apenas as dependências
+      verdadeiras, conseguimos obter:
+
+                     .-.-----(1)     (2)     (9) 
+                     | |    / | \   / . \
+                     | | (4)  |  (3).´   (6)
+                     | |    \ | / .´    /
+                     | |     \|/.´     /
+                     | |     (5)     (7)
+                     | |        \
+                     | '---------(8)
+                     |
+                     '------(10)
+
+    - Em geral, os compiladores conseguem fazer essas otimizações
+      sozinhas - e até avisar de variáveis não utilizadas.
+
+* Dado um grafo de dependências, podemos observar o tempo necessário
+  para executar um programa. Considerando que cada linha do programa
+  custa 1 unidade de tempo, podemos contar quantas unidades de tempo
+  o programa é otimizado:
+
+                (9)          .----.(1)     (2)
+                   `.      .´|    / | \   / . \
+                     `.  .´  | (4)  |  (3).´   (6)
+                      (10)   |    \ | / .´    /
+                             |     \|/.´     /
+                             |     (5)     (7)
+                             |        \
+                             '---------(8)
+
+        .-----------------.----.---.---.---.---.---.---.---.
+        | N processadores |  1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+        |-----------------|----|---|---|---|---|---|---|---|
+        | Tempo           | 10 | 5 | 4 | 4 | 4 | 4 | 4 | 4 |
+        '-----------------'----'---'---'---'---'---'---'---'
+
+    - Para cada número de processadores, podemos montar uma tabela com o
+      escalonamento das linhas de instruções em cada processador:
+
+        2 processadores    3 processadores        4 processadores
+          .----.----.      .----.----.----.    .----.----.----.----.
+          | P1 | P2 |      | P1 | P2 | P3 |    | P1 | P2 | P3 | P4 |
+          |----|----|      |----|----|----|    |----|----|----|----|
+          |  1 |  2 |      |  1 |  2 |  9 |    |  1 |  2 |  9 | XX |
+          |  4 |  3 |      |  4 |  3 |  6 |    |  4 |  3 |  6 | XX |
+          |  9 |  6 |      |  5 |  7 | 10 |    |  5 |  7 | 10 | XX |
+          | 10 |  5 |      |  8 | XX | XX |    |  8 | XX | XX | XX |
+          |  7 |  8 |      '----'----'----'    '----'----'----'----'
+          '----'----'
+
+    - Podemos perceber que a quantidade de tempo utilizada não melhora
+      com o tempo.
+
+* Lei de Amdhal e speedup
+    - A lei de Amdhal é uma observação baseada na experiência ocorrida
+      ao resolver um problema em paralelo.
+
+    - Primeiro, precisamos definir a aceleração (speedup) S(n), que pode
+      ser definido como:
+                            S(n) = T1 / Tn
+
+          T1 = tempo de rodar o programa sequencialmente
+          Tn = tempo de rodar o programa em N processadores/threads
+
+    - Dessa forma, o speedup do exemplo anterior será:
+
+        .-----------------.----.---.-----.-----.-----.-----.-----.
+        | N processadores |  1 | 2 |  3  |  4  |  5  |  6  | ... |
+        |-----------------|----|---|-----|-----|-----|-----|-----|
+        | Tempo           | 10 | 5 |  4  |  4  |  4  |  4  | ... |
+        |-----------------|----|---|-----|-----|-----|-----|-----|
+        | Speedup         |  1 | 2 | 2.5 | 2.5 | 2.5 | 2.5 | ... |
+        '-----------------'----'---'-----'-----'-----'-----'-----'
+
+    - Dessa forma, o speedup pode ser colocado num gráfico da forma:
+
+                   ^
+            T1/Tn  |___________ .____________
+                   |          .´     . . . .
+                   |        .´   .
+                   |      .´ .
+                   |    .´.
+                   |  .´.
+                   |.´. 
+                  -|--------------------------> n processadores
+
+    - Entretanto, existem outros fatores. No geral, existem partes do
+      código paralelizáveis, e outras que só podem ser executadas
+      de forma sequencial. Podemos definir:
+
+        Ts = tempo de execução sequencial
+        Tp = tempo de execução do trecho paralelizável
+
+      E a nova equação fica:
+
+                            S(n) =    T1
+                                   ---------
+                                   Ts + Tp/n
+
+      No limite de n → ∞, obtemos:
+
+                               S(∞) = T1  
+                                      --
+                                      Ts
+
+      A parte sequencial domina sobre a parte não sequencial. E essa
+      parte sempre existe, mesmo que seja apenas a maquinaria
+      necessária para paralelizar o código.
+
+    - Como, em geral, temos várias regiões paralelizáveis no código,
+      precisamos generalizar mais ainda a definição:
+
+                    S(n) =         T1
+                           -------------------
+                           Ts + ∑(k=1,n) Tpk/k
+
+        Tpn = tempo de execução do trecho de códiggo que pode ser
+              executado com speedup k.
+
+      No limite, o speedup também converge para T1/Tn.
+
+    - Apesar dessa generalização, existe também o 'overhead'
+      (sobrecarga), que está relacionado à sincronização de processos
+      ou threads. Em geral, o overhead aumenta conforme o número de
+      processadores, modificando a forma geral do gráfico:
+
+                  S(n) =            T1
+                         ------------------------
+                         Ts + ∑(k=1,n) Tpk/k + To
+
+        To = tempo de overhead
+
+                 ^
+          T1/Tn  |___________ .____________
+                 |          .´      . . .
+                 |        .´   .         \
+                 |      .´ .              \
+                 |    .´.                  \
+                 |  .´.                     \
+                 |.´.                        `.
+                -|-------------------------------> n processadores
+
+      Em geral, os gráficos de speedup caem abruptamente depois de
+      um certo tempo.
+
+    - A definição de speedup pode ter alguns problemas: T1 é o tempo
+      executado pelo melhor algoritmo sequencial, ou do algoritmo
+      paralelizável? Isso é importante, pois nem sempre o melhor
+      algoritmo sequencial é paralelizável, e a diferença de desempenho
+      entre ambos pode variar segundo o problema.
+
+* Eficiência
+    - A eficiência é definida como:
+                            E(n) = S(n)/n
+
+      Ela é uma métrica que, em geral, mostra quantos processadores
+      acabam ficando ociosos ao longo do tempo. Quanto mais próxima
+      da eficiência 1, melhor.
+    
+    - Atualmente, com o uso de computação em nuvem (cujos recursos
+      são compartilhados) e computação verde (preocupada com a
+      eficiência energética dos computadores), nem sempre vale a
+      pena ter um grande speedup se isso prejudicar muito a eficiência.
+
+* Contagem de instruções
+
+    - Voltando ao exemplo original, podemos fazer novamente o grado de
+      dependências. Entretanto, faremos uma contagem do número de
+      instruções utilizadas em cada passo:
+
+        | 01. a = 2               a:M                  I = 1
+        | 02. b = 5               b:M                  I = 1
+        | 03. c = a + b           c:M a:U b:U          I = 2
+        | 04. d = 3 * a           d:M a:U              I = 2
+        | 05. e = a * b + c * d   e:M a:U b:U c:U d:U  I = 4
+        | 06. f = 2 * b           f:M b:U              I = 2
+        | 07. g = d - f           g:M d:U b:U          I = 2
+        | 08. h = a + e           f:M a:U e:U          I = 2
+        | 09. i = 42              i:M                  I = 1
+        | 10. j = h - a           j:M f:U a:U          I = 2
+
+                     .-.-----(1)     (2)     (9) 
+                     | |    / | \   / . \
+                     | | (4)  |  (3).´   (6)
+                     | |    \`|./ .´    /
+                     | |     \|/.´.    /
+                     | |     (5)   `.(7)
+                     | |        \
+                     | '---------(8)
+                     |
+                     '------(10)
+
+    - Podemos organizar os processadores da seguinte forma:
+
+           P1       P2       P3
+       .--------.--------.--------.
+       |  1 :|: |  2 :|: |  9 :|: |   T3 = 9
+       |--------|--------|--------|
+       |  4 ¨|¨ |  3 ¨|¨ |  6 ¨|¨ |   S  = T1/Tn = 19/9 = 2.111..
+       |    _|_ |    _|_ |    _|_ |
+       |--------|--------|--------|   E  = 2.111.../3 = ~0.7
+       |  5 ¨|¨ |  7 ¨|¨ | 10 ¨|¨ |
+       |     |  |    _|_ |    _|_ |
+       |     |  |--------|--------|
+       |    _|_ |        |        |
+       |--------|        |        |
+       |  8 ¨|¨ |        |        |
+       |    _|_ |        |        |
+       '--------'--------'--------'
+         9 ins.   5 ins.   5 ins.
+
+           P1       P2       P3       P4
+       .--------.--------.--------.--------.
+       |  1 :|: |  2 :|: |  9 :|: |    [ ] |   T4 = 9
+       |--------|--------|--------|--------|
+       |  3 ¨|¨ |  4 ¨|¨ | 10 ¨|¨ |  6 ¨|¨ |   S  = T1/Tn = 19/9 = 2.111..
+       |    _|_ |    _|_ |    _|_ |    _|_ |                               
+       |--------|--------|--------|--------|   E  = 2.111.../4 = ~0.53
+       |  5 ¨|¨ |  7 ¨|¨ |        |        |
+       |     |  |    _|_ |        |        |
+       |     |  |--------|        |        |
+       |    _|_ |        |        |        |
+       |--------|        |        |        |
+       |  3 ¨|¨ |        |        |        |
+       |    _|_ |        |        |        |
+       '--------'--------'--------'--------'
+         9 ins.   5 ins.   3 ins.   2 ins.
