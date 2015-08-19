@@ -1,0 +1,233 @@
+Otimizações no Compilador
+==========================
+
+* A primeira forma de otimização que vimos foi algorítmica. Como vimos,
+  nem sempre o algoritmo mais eficiente para o problema é o que servirá
+  de forma ótima para um dado tamanho de entrada.
+
+* Outra forma de otimização é de código - o compilador é capaz de
+  manipular a árvore abstrata para melhorar o código gerado. Podemos
+  escrever o programa de forma a facilitar a vida do compilador - e
+  mesmo otimizar algo que ele não consiga ou não possa fazer (não
+  possa porque existem otimizações *perigosas*, que podem afetar
+  o comportamento esperado do programa).
+
+* Otimizações avançadas
+    - Eliminação de expressão comum
+
+            | x = r * sin(a) * cos(b);
+            | y = r * sin(a) * sin(b);
+            | z = r * cos(a);
+
+        - r * sin(a) é invariante, mas o compilador não pode fazer
+          nada, a menos que `sin` seja intrínseca (da linguagem).
+
+        - Como, para o compilador, `sin(a)` é uma função qualquer,
+          e ele não sabe o que ela faz, ele não pode otimizar,
+          dado que ele não tem certeza que o valor será sempre
+          o mesmo.
+
+        - Se ele souber que o valor é o mesmo, ele poderia otimizar
+          o código para fazer:
+
+            | t = r * sin(a);
+            | x = t * cos(b);
+            | y = t * sin(b);
+            | z = r * cos(a);
+
+            - Ao custo de 1 registrador, ganhamos 1 chamada de função
+              e 1 multiplação. Feito em um laço, isso pode dar um
+              bom ganho.
+            - Em Fortran, `sin(a)` é uma função intrínseca, da
+              linguagem, e ele pode fazer esta otimização.
+            - Hoje, compiladores de C/C++ são mais espertos,
+              e detectando que estamos usando a libc, por exemplo,
+              eles poderiam fazer a mesma otimização.
+            - Não podendo contar com o compilador, podemos escrever
+              o código em C acima explicitamente, e já ganhar com ela.
+
+    - Deslocamento de código
+
+            | DO 1=1,N
+            |     A(1) = A(1)/SQRT(X*X + Y*Y)
+            | ENDDO
+
+        - Como no caso anterior, `SQRT` é uma função intrínseca
+          do código Fortran.
+        - Nesse exemplo, o código em comum é retirado e fazemos a
+          transformação da divisão em uma multiplicação:
+
+            | TMP = 1/SQRT(X*X + Y*Y)
+            | DO 1=1,N
+            |     A(1) = A(1)*TMP
+            | ENDDO
+
+        - Outro exemplo é em comunicação (hosting e sinking).
+
+    - Acesso a vetores
+
+            | DO I=1,N
+            |     XOLD = X(I)
+            |     X(I) = X(I) + XINC(I)
+            | ENDDO
+
+        - Os compiladores nem sempre enxergam que este é o mesmo X(I),
+          e que esse valor poderia ser colocado em um mesmo registrador.
+
+        - Podemos estimular o compilador a usar um registrador no
+          lugar da memória introduzindo uma variável local.
+
+            | DO I=1,N
+            |     TEMP = X(I)
+            |     XOLD = TEMP
+            |     X(I) = TEMP + XINC(I)
+            | ENDDO
+
+        - Em C, esse tipo de otimização é problemática, porque pode
+          haver ponteiros. O compilador precisa verificar se a posição
+          da memória nunca será acessada por um ponteiro, pois nesse
+          caso ele precisa colocar a variável na memória.
+
+    - Otimizações de laços
+
+        - Balanceamento de operações
+
+                | DO I=1,N
+                |     A(I, J, K) = A(I, J, K) + B(J, I, K)
+                | ENDDO
+
+            - Para fazer o fine-tunning de uma aplicação para uma
+              máquina específica, pode-se verificar o número de
+              operações de cada tipo e ver se a mistura é adequada,
+              levando-se em conta as unidades funcionais dos
+              processadores.
+        
+            - Esse tipo de otimização, frequentemente, nem é feita
+              pelos compiladores, mas sim pelos processadores.
+              Hyperthreading é uma forma de tentar aproveitar esse
+              balanceamento entre estruturas dos processadores.
+
+        - Unrolling
+
+              | DO I =1,N
+              |     A(I) = A(I) + B(I) * C(I)
+              | ENDDO
+
+            - Temos nesse laço um total de N vezes as seguintes
+              iterações:
+
+              N * (1 soma + 1 multiplicação + 1 atribuição
+                   + 1 comparação + 1 atribuição + 1 desvio)
+            
+            - Cada iteração de um laço geralmente envolve uma
+              comparação, uma atualização de variável e um desvio.
+              Só o desvio já compromete o andamento da 'pipeline'
+              (ciclo fetch-decode-execute) e pode ser custoso.
+                - No caso acima, o overhead de fazer o laço já
+                  é de cerca de 50%.
+
+            - Normalmente, os compiladores são capazes de fazer
+              esta otimização, se solicitada explicitamente pelo
+              programador.
+
+                | DO I =1,N,4
+                |     A(I)   = A(I)   + B(I)   * C
+                |     A(I+1) = A(I+1) + B(I+1) * C
+                |     A(I+2) = A(I+2) + B(I+2) * C
+                |     A(I+3) = A(I+3) + B(I+3) * C
+                | ENDDO
+
+            - Em um processador superescalar ou vetorial, as 4
+              operações podem ser executadas em paralelo, por meio
+              das instruções especiais de assembly que as utilizam.
+
+            - Nem sempre o 'unrolling' compensa. É necessário fazer
+              testes de tempo para isso.
+
+            - E se N não for divisível por 4? É necessário um pré-
+              condicionamento:
+
+                | II = IMOD(N,4)
+                | DO I=1,II
+                |     A(I)   = A(I)   + B(I)   * C
+                |     A(I+1) = A(I+1) + B(I+1) * C
+                |     A(I+2) = A(I+2) + B(I+2) * C
+                |     A(I+3) = A(I+3) + B(I+3) * C
+                | ENDDO
+
+            - Onde usar e não usar:
+                1. Laços pequenos não valem a pena (trip count
+                   pequeno). A menos que seja possível fazer
+                   'unroll' completo.
+                2. Laços gordos também não valem a pena porque pode-se
+                   aumentar o tamanho do código e o ganho na economia
+                   em testes e incrementos é muito pequeno.
+                3. Idem para laços com chamadas de procedimentos.
+                4. Laços com condicionais, às vezes, vale a pena:
+
+                    | DO I=1,N
+                    |     DO J=1,N
+                    |         IF (B(I,J) .GT. 1.0)
+                    |             A(J,I) = A(J,I) + B(J,I) * C
+                    |     ENDDO
+                    | ENDDO
+
+                    - Alguns compiladores / processadores fazem
+                      "execução especulativa", em que executam tanto
+                      a cláusua do `if`, do `else` enquanto decide
+                      qual será usado na comparação.
+
+        - Laços aninhados
+            
+            - Pode-se fazer 'unroll' de quaisquer índices. A cada
+              iteração do laço mais interno executa-se mais de
+              uma do laço externo.
+
+            - Desenrolar o laço externo vale a pena quando o 'trip
+              count' do laço interno é pequeno ou então para contornar
+              dependências (veremos mais em outras aulas).
+
+        - Troca de laços
+            - Trazer o laço interno para dentro ajuda a fazer, por
+              exemplo, uma paralelização no laço pequeno e 'unroll'
+              no laço grande. Isto é interessante para máquinas
+              paralelas com processadores superescalares ou vetoriais.
+            - Outro caso, mais comum, é para garantir um 'unit stride'.
+              - percorrer a memória em endereços consecutivos, de modo
+              a preservar o cache o máximo possível. No caso de
+              acessarmos uma matriz, por exemplo, queremos percorrê-la
+              em linha/coluna (segundo a maneira que a linguagem
+              armazena) e evitar trocas de páginas.
+
+        - Blocking
+            - Nem sempre é fácil descobrir como fazer o 'unroll'.
+              As opções podem ser conflitantes:
+
+                | DO I=1,N
+                |     DO J=1,N
+                |         A(J,I) = A(J,I) + B(I,J)
+                |     ENDDO
+                | ENDDO
+
+                - Estamos acessando uma matriz por linha e uma
+                  matriz por coluna. Qual delas compensa otimizar?
+
+            - Uma solução é fazer um duplo unroll: assim, algumas
+              linhas de cache sobram para o segundo array:
+
+                DO I =1 ,N ,2
+                    DO J =1 ,N ,2
+                        A(J,I)     = A(J,I)     + B(I,J)
+                        A(J+1,I)   = A(J+1,I)   + B(I,J+1)
+                        A(J,I+1)   = A(J,I+1)   + B(I+1,J)
+                        A(J+1,I+1) = A(J+1,I+1) + B(I+1,J+1)
+                    ENDDO
+                ENDD
+
+* Otimizações dos compiladores
+    - Em geral, os compiladores suportam quatro níveis de otimização:
+      - O0 (sem otimizações).
+      - O1 (otimizações básicas que não aumentam o tempo de compilação).
+      - O2 (otimizações extras que custam tempo/espaço).
+      - O3 (ainda mais otimizações, que são agressivas e podem até
+            piorar o desempenho do código gerado).
