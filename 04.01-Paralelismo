@@ -1,0 +1,120 @@
+Paralelismo
+============
+
+* Existem vários problemas que demandam computação de alto desempenho:
+    - Jogos
+    - Processamento de tempo real
+    - Simulações (científicas e de engenharia)
+    - Big Data
+    - Metereologia
+    - Bioinformática (genomas)
+
+* A corrida pela velocidade
+    - Em 1965, Moore previu que a capacidade dos processadores deveria
+      dobrar a cada 2 anos, aproximadamente.
+    - Ela continua válida até hoje, pois as empresas do setor lutam
+      para chegar nesses números (principalmente Intel e AMD, que o
+      fazem como forma de competição).
+
+* Até onde ela vai?
+    - Em pouco tempo (600 anos), seríamos capazes de simular todo o
+      universo em um único chip.
+    - A miniaturização va atingir o nível atômico antes disso.
+    - Dissipação de calor e consumo tornam-se problemas críticos.
+    - Problema da convergência
+
+* Problemas
+    - Simulação
+    - Previsão do tempo
+    - Bioinformática
+    - LHC
+    - Data mining
+
+* Alguns casos
+    - Wall Street
+        - O volume de transações é enorme e decisões devem ser tomadas
+          muito rapidamente.
+
+* Outros aspectos
+    - Visualização - como apresentar uma massa de dados correspondente a
+      petabytes?
+        - Processamento adicional
+        - Apresentação iterativa
+    - Data mining - como achar informação relevante no meio de tantos
+      dados?
+        - Redes sociais
+        - Resultados experimentais de LHC, Bioinfo, Astronomia, etc
+    - Filtragem e tratamento de dados
+
+* Desafios
+    - Uso de multicore. Como aproveitar?
+    - Precisão numérica.
+    - Balanceamento de carga.
+    - Ajuste a cenários (otimização dinâmica).
+    - Escalonamento e alocação de recursos.
+    - Tolerância a falhas.
+    - Desempenho na nuvem.
+    - Computação verde.
+
+* Análise de desempenho
+    - Modelagem matemática.
+    - Modelagem estatística.
+    - Simulação.
+    - Modelos mistos.
+
+    - Saber qual abordagem usar depende muito do problema e da
+      plataforma.
+
+* Exemplo de problema de paralelismo
+
+    1. a = 2   | É possível paralelizar essas instruções em 7
+    2. b = 5   | processadores?
+    3. c = a*b | 
+    4. d = 3   |          |   P1    |   P2    |   P3    |
+    5. e = a+9 |          | a = 2   | b = 5   |  d = 3  |
+    6. f = d*c |          | c = a*b | e = a+9 |         |
+    7. g = b-4 |          | f = d*c | g = b-4 |         |
+               |
+               | NÃO! Existem dependências entre as instruções,
+               | e apenas algumas podem ser feitas juntas.
+               |
+               | Apesar de podermos paralelizar em 3 processadores,
+               | nem sempre é útil fazê-lo. Ligar um processador apenas
+               | para rodar um programa não é muito útil.
+
+* Ferramentas para análise de programs
+    - O `valgrind`, além de analizar memória, pode ser rodado com
+      a flag `--tool=cachegrind` para mostrar o uso de cache de
+      um dado programa (um possível gargalo em termos de eficiência).
+
+* Taxonomia de Flynn
+    - Para facilitar classificar diferentes arquiteturas, Flynn criou
+      uma taxonomia que as separa segundo a capacidade de processar
+      instruções ou dados
+
+                                  Instructions
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+                             Single         Multiple
+                        .---------------.---------------.
+             { Single   |     SISD      |     MISD      |
+        Data {          |---------------|---------------|
+             { Multiple |     SIMD      |     MIMD      |
+                        '---------------'---------------'
+
+    - SISD são as máquinas tradicionais, com arquitetura de Von Noumann
+      básica - lendo e executando uma instrução para um dado por vez.
+
+    - SIMD são as máquinas vetoriais e GPUs, que possuem instruções
+      especiais para processar vários dados ao mesmo tempo, ou vários
+      cores que são capazes de executar uma mesma conta várias vezes
+      (como multiplicar matrizes em uma GPU).
+
+    - MIMD é a definição mais geral, que mostra uma máquina com vários
+      processadores rodando vários processos ao mesmo tempo.
+
+    - MISD não faz muito sentido, a não ser em casos muito específicos,
+      pois é difícil um mesmo dado poder ser tratado por instruções
+      diferentes de um mesmo programa ao mesmo tempo. No lugar,
+      costuma-se falar em MPSD (multiple program, single data), em que
+      os mesmos dados passam por vários tratamentos diferentes.
+
