@@ -1,0 +1,93 @@
+Análise de dependências
+========================
+
+* Uma das formas mais comuns de dependências estão nos laços - e é onde
+  mais podemos ganhar, geralmente, com paralelismo.
+
+* Consideremos o seguinte exemplo:
+    
+    | for (int i = 0; i < N; i++)
+    |     a[i] = 2*a[i-1];
+
+  - Esse laço, à priori, NÃO É PARALELIZÁVEL, pois o valor atual SEMPRE
+    depende do valor anterior.
+
+  - Porém, se analizarmos, o que o laço está fazendo é calcular uma P.G
+    para cada casela do vetor. Com a equação, poderíamos paralelizar
+    utilizando 'unroll', por exemplo.
+
+* Observemos o próximo exemplo:
+
+    | for (i = 2; i < N; i++)
+    |     for (j = 1; j < M; j++)
+    |         a[i][j] = f(a[i-2][j-1])
+
+  - Quais são as dependências desse laço? Para conseguirmos achá-la,
+    podemos fazer 'unrolling' dos primeiros elementos para ver qual
+    elemento depende de qual:
+        
+        a_21 = f(a_00)
+        a_22 = f(a_01)
+        a_23 = f(a_02)
+         ...     ...
+        a_42 = f(a_21)
+
+    - Podemos perceber que alguns elementos não estão sendo utilizados
+      para os cálculos mais à frente. Podemos vizualizar essas
+      dependências mais efetivamente:
+
+                          ^
+                          |  *   *   *   * 
+                          |
+                          |  *   *   *   * 
+                          |       .-----^
+                          |  *   *   *   * 
+                         -|---------------->
+
+    - Criamos um *vetor de dependência*, que ocorre todas as vezes que
+      temos uma dependência uniforme entre os elementos consecutivos
+      utilizados no vetor. Ele é calculado subtraindo os índices:
+
+                            (i) - (i-2) = (2)
+                            (j) - (j-1) = (1)
+
+    - O vetor de dependências é muito prático para vermos
+      (espacialmente) como podemos percorrer a matriz e utilizar o
+      potencial máximo de paralelização. Nesse caso, percebemos que um
+      par de colunas não tem a mesma dependência. Logo, podemos
+      percorrên-las de duas a duas e ganhar 50% do tempo com um número
+      suficiente de processadores.
+
+* Consideremos agora o exemplo mais complexo:
+
+        | for (i = 2; i < N; i++)
+        |     for (j = 1; j < M; j++) {
+        |         a[i][j] = f(a[i-2][j-1])
+        |         b[i][j-1] = f(b[i-2][j])
+        | }
+
+    - Como a dependência em ambos os vetores são uniformes, podemos
+      calcular os vetores de dependência:
+
+                       a: (i) - (i-2) = ( 2)
+                          (j) - (j-1) = ( 1)
+
+                       b: (i) - (i-2) = ( 2)
+                          (j-1) - (j) = (-1)
+
+    - Podemos traçar, novamente, um plano para encontrarmos os vetores
+      de dependência:
+
+                    ^
+                    |   *   *   *   *   *   *
+                    |      
+                    |   *   *   *   *   *   *
+                    |    ^------.------^
+                    |   *   *   *   *   *   *
+                   -|--------------------------->
+
+    - O vetor sobre a matriz 'b' é uma antidepenência, pois a variável
+      utilizada (b[j-1]) depende de uma modificada (b[j]).
+
+    - Podemos nos livrar da antidependência trocando a primeira variável
+      'b' por 'c'.
