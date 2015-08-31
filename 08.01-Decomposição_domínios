@@ -1,0 +1,48 @@
+Decomposição de domínios
+=========================
+
+* Na aula anterior, vimos um caso de problema 'embarassing parallel',
+  cuja paralelização é muito simples. Nessa aula, veremos uma
+  paralelização por decomposição de domínios.
+
+* Suponhamos o seguinte exemplo: temos uma barra que está a 100ºC numa
+  ponta e 0ºC em outra. Como ficará a distribuição final de temperatura?
+  Podemos usar um vetor para a simulação.
+
+                 :              :              :
+                 :              :              :
+     |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+                 :              :              :
+                 :              :              :
+
+* Cada casela do vetor representa um ponto do vetor, inicializado com
+  a sua temperatura. Fazemos uma "divisão" do vetor em N partes, segundo
+  o número N de processadores.
+
+* Como em cada iteração precisamos do passo anterior para o cálculo,
+  manteremos dois vetores (apelidados 'red' e 'black') para manter cada
+  iteração. Apenas trocando qual vetor é usado (via ponteiros), sempre
+  temos um vetor de valores antigos e um novo. Cada thread ainda será
+  responsável por um conjunto de índices.
+
+                     :              :              :
+                     :              :              :
+  Red |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+                     :              :              :
+                     :              :              :
+  Blk |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+                     :              :              :
+                     :              :              :
+
+* Teremos sempre um ciclo de computação e um ciclo de sincronização.
+  Usaremos, para a sincronização, barreiras e variáveis de condição.
+
+* Apesar das barreiras serem interessantes, elas não são boas: perde-se
+  tempo porque todas as threads têm de esperar a mais lenta. Se as
+  threads são criadas aos poucos, a primeira lançada já poderia ter
+  feito sua computação enquanto a última ainda estivesse sendo lançada.
+
+* Para otimizar, podemos fazer um vetor de mutexes e exigir que um
+  processador trave APENAS as regiões das fronteiras. Assim, com um
+  grande número de threads, podemos ter várias regiões sendo calculadas
+  ao mesmo tempo.
