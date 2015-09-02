@@ -1,0 +1,19 @@
+GDB (GNU Debugger)
+===================
+
+* Nessa aula, veremos um pouco sobre ferramentas úteis para depuração.
+
+* Para utilizar o gdb, precisamos compilar o código com a opção `-g`,
+  que cria uma tabela, no final do executável, com as linhas
+  correspondentes às regiões do executável.
+
+        |        |        |        |        |      |        |
+          código   código   código   código   link   tabela
+          objeto   objeto   objeto   objeto   bib.     de
+            #1       #2       #3       #4     din.   linhas
+
+* Em um programa normal, o debugger é capaz de identificar sinais ou
+  falhas que ocorram no programa.
+
+* Em um programa que já está executando, o gdb pode associar-se ao
+  processo que está sendo executado (por meio de seu pid).

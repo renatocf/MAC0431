@@ -1,0 +1,17 @@
+GProf (GNU Profiler)
+=====================
+
+* Para utilizar o gprof, precisamos compilar o código com a opção `-gp`.
+  O compilador adiciona interrupções a cada N ciclos do programa, que
+  move um ponteiro dizendo em que função do código o programa está.
+  Com o auxílio de uma tabela extra no final do executável, essa
+  amostragem é usada para contabilizar quanto tempo o programa ficou
+  em cada instrução.
+
+* Ao terminar de executar, o programa cria um arquivo `gmon.out` -
+  binário com as posições em que o ponteiro estava. Esse arquivo
+  é lido pelo `gprof`, que gera uma tabela com tempo de execução
+  de cada função.
+
+* Esse programa pode ser usado para encontrar gargalos no código, e
+  analisar onde ele pode ser otimizado.

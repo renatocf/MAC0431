@@ -1,0 +1,31 @@
+Valgrind
+=========
+
+* O valgrind inclui um conjunto de ferramentas que realiza diversas
+  funções. Ele monta uma pequena máquina virtual para rodar o
+  programa, e verifica *cada acesso* feito à memória.
+
+* A ferramenta padrão do valgrind é o `memcheck`. Compilar com o `-g`
+  é opcional, mas pode ajudar a mostrar em quais linhas ocorrem
+  os erros. Com a flag `--leak-check=full`, ele também mostra quais
+  os vazamentos de memória que ocorreram.
+
+* Outra ferramenta interessante (que pode ser acessada por meio da flag
+  `--tool=cachegrind`) é o analisador de cache. O valgrind analisa qual
+  o último cache disponível no processador (ex: L3, apelidado LL) e
+  anota quantas perdas ocorreram em acesso à memória. A especificação é
+  mostrada para dados e instruções. Ele também cria uma tabela com
+  informações. Os dados coletados são anotados no arquivo
+  `cachegrind.out.PID`. para algum PID. Esse arquivo pode ser analisado,
+  também, pela ferramenta auxiliar `cg_annotate`, que mostra o uso de
+  cache *em cada linha do programa*.
+
+* Mais uma ferramenta é o `helgrind` (que pode ser acessada por meio da
+  `--flag --tool=helgrind`). Ele tenta checar todos os locks que podem
+  ser possivelmente emitidos pelo programa. O problema é que ele deixa o
+  programa *muito* mais lento e pode dar falsos positivos
+  (principalmente junto à biblioteca do C).
+
+* No diretório `/usr/share/doc/valgrind/html/index.html`, temos uma
+  documentação completa, em HTML, do valgrind, com exemplos, tutoriais e
+  explicações sobre as ferramentas.

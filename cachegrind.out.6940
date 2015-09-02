@@ -1,0 +1,244 @@
+desc: I1 cache:         32768 B, 64 B, 8-way associative
+desc: D1 cache:         32768 B, 64 B, 8-way associative
+desc: LL cache:         4194304 B, 64 B, 16-way associative
+cmd: ./09.06-uij
+events: Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw 
+fl=/home/renatocf/Documentos/8o_semestre/MAC0431/09.06-uij.c
+fn=main
+6 2 0 0 0 0 0 1 0 0
+8 30005 1 1 20001 0 0 1 0 0
+9 300040000 0 0 200010000 0 0 10000 0 0
+10 800000000 0 0 300000000 1 0 100000000 12500001 12500001
+13 2 0 0 2 0 0 0 0 0
+fl=???
+fn=(below main)
+0 58 5 5 16 2 0 17 0 0
+fn=???
+0 174 16 12 90 4 3 18 1 1
+fn=_Exit
+0 8 2 2 1 1 1 0 0 0
+fn=_IO_cleanup
+0 43 4 4 15 0 0 8 0 0
+fn=_IO_flush_all_lockp
+0 90 9 9 25 11 11 12 0 0
+fn=__call_tls_dtors
+0 11 2 2 5 2 2 2 0 0
+fn=__ctype_init
+0 16 2 2 10 3 0 3 0 0
+fn=__cxa_atexit
+0 22 2 2 5 0 0 8 1 0
+fn=__cxa_finalize
+0 47 4 4 12 1 1 6 0 0
+fn=__init_cpu_features
+0 84 10 10 9 2 2 13 0 0
+fn=__init_misc
+0 24 2 2 7 1 0 5 1 0
+fn=__libc_csu_init
+0 34 3 3 8 1 0 8 0 0
+fn=__libc_memalign
+0 660 4 4 129 0 0 127 0 0
+fn=__new_exitfn
+0 38 7 7 11 5 3 5 0 0
+fn=__run_exit_handlers
+0 56 5 5 9 5 5 10 1 1
+fn=__sigjmp_save
+0 9 0 0 2 0 0 2 0 0
+fn=__sigsetjmp
+0 75 4 4 19 0 0 32 1 1
+fn=__unregister_atfork
+0 10 2 2 4 1 1 2 0 0
+fn=_dl_add_to_namespace_list
+0 103 2 2 29 0 0 23 0 0
+fn=_dl_add_to_slotinfo
+0 20 2 2 8 3 0 5 0 0
+fn=_dl_allocate_tls_init
+0 96 8 8 32 2 0 16 0 0
+fn=_dl_allocate_tls_storage
+0 316 2 2 5 0 0 293 36 36
+fn=_dl_cache_libcmp
+0 784 3 3 123 11 11 0 0 0
+fn=_dl_catch_error
+0 120 4 4 33 0 0 60 4 4
+fn=_dl_check_all_versions
+0 75 3 3 13 0 0 8 0 0
+fn=_dl_check_map_versions
+0 1205 13 13 393 15 14 164 14 13
+fn=_dl_count_modids
+0 4 1 1 3 0 0 0 0 0
+fn=_dl_debug_initialize
+0 41 3 3 13 0 0 4 0 0
+fn=_dl_debug_state
+0 2 0 0 2 0 0 0 0 0
+fn=_dl_determine_tlsoffset
+0 71 7 7 15 0 0 10 0 0
+fn=_dl_discover_osversion
+0 80 4 4 14 1 1 7 1 1
+fn=_dl_fini
+0 276 12 12 86 29 29 33 7 7
+fn=_dl_fixup
+0 162 7 7 60 11 10 20 1 1
+fn=_dl_important_hwcaps
+0 260 19 19 52 0 0 44 2 2
+fn=_dl_init
+0 84 4 4 24 1 0 11 0 0
+fn=_dl_init_paths
+0 579 12 12 84 0 0 35 1 1
+fn=_dl_initial_error_catch_tsd
+0 8 0 0 4 0 0 0 0 0
+fn=_dl_load_cache_lookup
+0 344 16 16 62 10 10 33 0 0
+fn=_dl_lookup_symbol_x
+0 18498 12 12 3954 98 90 2209 9 5
+fn=_dl_map_object
+0 443 21 21 98 1 1 72 2 2
+fn=_dl_map_object_deps
+0 1098 38 38 233 1 1 124 3 3
+fn=_dl_map_object_from_fd
+0 1746 50 50 389 16 16 204 24 24
+fn=_dl_name_match_p
+0 941 3 3 243 4 0 140 1 1
+fn=_dl_new_object
+0 605 14 14 106 4 4 115 25 25
+fn=_dl_next_ld_env_entry
+0 493 2 2 169 40 40 2 0 0
+fn=_dl_next_tls_modid
+0 8 1 1 3 0 0 1 0 0
+fn=_dl_protect_relro
+0 63 2 2 18 0 0 6 0 0
+fn=_dl_receive_error
+0 28 2 2 10 0 0 12 0 0
+fn=_dl_relocate_object
+0 25997 47 47 6321 671 615 2408 250 241
+fn=_dl_runtime_resolve
+0 58 3 3 18 0 0 16 0 0
+fn=_dl_setup_hash
+0 92 2 2 28 5 5 24 0 0
+fn=_dl_sort_fini
+0 170 6 6 51 1 1 20 2 2
+fn=_dl_start
+0 678 20 18 149 24 22 55 18 17
+fn=_dl_sysdep_read_whole_file
+0 41 3 3 6 0 0 9 0 0
+fn=_dl_sysdep_start
+0 555 15 14 152 23 21 41 5 5
+fn=_dl_sysdep_start_cleanup
+0 1 1 1 1 0 0 0 0 0
+fn=_dl_unload_cache
+0 10 2 2 3 1 0 2 0 0
+fn=_dl_vdso_vsym
+0 24 3 3 12 1 0 0 0 0
+fn=_fxstat
+0 30 1 1 3 0 0 0 0 0
+fn=_init
+0 100 6 6 17 1 0 18 2 2
+fn=_setjmp
+0 2 1 1 0 0 0 0 0 0
+fn=_start
+0 11 1 1 1 0 0 3 0 0
+fn=_xstat
+0 98 1 1 8 0 0 6 0 0
+fn=access
+0 9 2 2 1 0 0 1 0 0
+fn=allocate_dtv
+0 19 2 2 4 0 0 5 1 1
+fn=bcmp
+0 1234 13 13 289 11 11 82 3 3
+fn=brk
+0 11 1 1 1 0 0 1 1 1
+fn=call_init.part.0
+0 155 4 4 58 6 0 28 0 0
+fn=calloc
+0 64 2 2 0 0 0 0 0 0
+fn=check_match
+0 4636 6 6 1568 23 14 529 4 2
+fn=close
+0 15 0 0 3 0 0 0 0 0
+fn=dl_main
+0 1167 73 73 239 26 19 137 17 17
+fn=do_lookup_x
+0 23716 18 18 8495 179 147 3694 8 4
+fn=do_preload
+0 28 3 3 7 0 0 8 0 0
+fn=exit
+0 4 1 1 0 0 0 1 0 0
+fn=expand_dynamic_string_token
+0 72 2 2 18 0 0 21 1 1
+fn=fillin_rpath
+0 256 12 12 49 0 0 65 0 0
+fn=free
+0 12 0 0 6 0 0 2 0 0
+fn=gettimeofday
+0 60 3 3 5 0 0 5 0 0
+fn=handle_intel
+0 98 4 4 14 0 0 26 0 0
+fn=index
+0 345 7 7 48 3 3 0 0 0
+fn=init_cacheinfo
+0 159 9 9 10 0 0 13 2 2
+fn=init_tls
+0 70 5 5 15 1 1 13 1 1
+fn=intel_check_word
+0 898 11 11 82 6 6 16 0 0
+fn=malloc
+0 69 0 0 0 0 0 0 0 0
+fn=map_doit
+0 14 1 1 5 0 0 3 0 0
+fn=match_symbol
+0 185 4 4 72 5 5 27 0 0
+fn=memcpy
+0 570 7 6 90 0 0 75 8 8
+fn=memcpy@GLIBC_2.2.5
+0 17 2 2 4 0 0 0 0 0
+fn=mempcpy
+0 657 6 6 93 2 1 68 5 5
+fn=memset
+0 2434 0 0 9 0 0 2380 37 37
+fn=mmap
+0 54 2 2 9 0 0 0 0 0
+fn=mprotect
+0 25 1 1 5 0 0 0 0 0
+fn=munmap
+0 5 0 0 1 0 0 0 0 0
+fn=open
+0 87 1 1 11 0 0 8 0 0
+fn=open_path
+0 635 14 14 225 0 0 84 1 1
+fn=open_verify
+0 673 14 14 170 6 6 130 3 3
+fn=openaux
+0 34 1 1 16 0 0 6 1 1
+fn=read
+0 10 0 0 2 0 0 0 0 0
+fn=rindex
+0 24 2 2 2 1 0 0 0 0
+fn=rtld_lock_default_lock_recursive
+0 8 1 1 8 1 1 0 0 0
+fn=rtld_lock_default_unlock_recursive
+0 8 0 0 8 0 0 0 0 0
+fn=sbrk
+0 17 2 2 5 0 0 2 0 0
+fn=strcasecmp
+0 7 2 2 3 1 1 1 0 0
+fn=strcmp
+0 9877 2 2 2939 18 9 0 0 0
+fn=strcspn
+0 7 1 1 3 0 0 0 0 0
+fn=strdup
+0 68 0 0 8 0 0 16 0 0
+fn=strlen
+0 1025 5 5 111 0 0 0 0 0
+fn=strncasecmp
+0 6 2 2 3 0 0 0 0 0
+fn=strpbrk
+0 7 1 1 3 0 0 0 0 0
+fn=strsep
+0 2154 3 3 348 0 0 4 0 0
+fn=strspn
+0 7 2 2 3 0 0 0 0 0
+fn=time
+0 60 3 3 5 1 1 5 0 0
+fn=uname
+0 5 1 1 1 0 0 0 0 0
+fn=version_check_doit
+0 10 1 1 4 0 0 2 0 0
+summary: 1100179675 722 714 500058506 1304 1145 100023991 12500506 12500483
