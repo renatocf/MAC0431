@@ -1,0 +1,80 @@
+OpenMP
+=======
+
+* Conjunto de biblioteca + diretivas de compilador para facilitar a
+  execução de programas em paralelo.
+
+* O OpenMP é especificado para ser usado com pragmans em C/C++ e como
+  comentários em Fortran.
+
+* Diretivas (pragmas)
+    - parallel      : marca uma região (bloco) para ser executado
+                      de forma paralela paralela.
+    - for           : laço paralelo. Em Fortran é usado "DO"
+                      - o próprio OpenMP divide o range de execução
+                        da variável de indução (variável do laço) para
+                        quebrar o problema em várias partes.
+    - for ordered   : laço em trechos seriais, com a cláusua 'ordered'
+                      - para especificar um laço serial dentro da região
+                        paralela.
+    - sections      : grupo de blocos que são executados em threads
+                      diferentes, para MPMD (multiple processors
+                      multiple data).
+    - single        : marca um bloco executado por uma única thread (a
+                      primeira que chegar).
+                      - em geral, coloca um mutex em uma região,
+                        tornando-a serial dentro de uma região paralela.
+    - master        : só a thread mestra executa o bloco
+    - critical      : seção crítica
+    - barrier       : barreira
+    - atomic        : execução atômica
+                      - executa como seção crítica, mas se possível
+                        mapeia a execução em instruções especiais de
+                        máquina que realiza a ação em apenas uma
+                        instrução.
+    - flush         : consistência para variáveis globais
+                      - garante que num dado ponto o valor de uma
+                        variável global e seu cache correspondente
+                        estarão sincronizados.
+
+* Cláusulas
+    - PRIVATE       : declara variávels com cópias locais a cada thread.
+    - SHARED        : oposto de PRIVAT, as variáveis são compartilhadas
+                      entre as threads.
+    - DEFAULT       : escolhe entre SHARED / PRIVATE / NONE para
+                      variáveis não declaradas explicitamente como
+                      nenhum dos tipos anteriores.
+    - FIRSTPRIVATE  : as cópias são inicializadas com o valor da
+                      variável existente imediatamente antes da
+                      entrada do bloco paralelo.
+    - LASTPRIVATE   : atualiza a variável original com a última
+                      atualização feita.
+                      - se cada thread tem uma versão de uma variável
+                        também o
+                        o último valor colocado 
+    - COPYIN        : copia a variável da thread mestra.
+    - COPYPRIVATE   : broadcast de uma variável privada.
+    - REDUCTION     : redução (operador:lista), o valor das variáveis
+                      listadas é atualizado pela aplicação do operador
+                      nas cópias compartilhadas.
+                      - similar à operação 'reduce' de uma linguagem
+                        funcional (ou biblioteca 'map-reduce').
+    - IF            : execução condicional
+    - NUM_THREADS   : número de threads desejadas
+    - NOWAIT        : cancela sincronização ao final do bloco.
+    ...
+
+* Quando criamos um vetor com OPENMP, temos um problema: Ao criarmos
+  threads, todas compartilham o espaço de memória global (BSS) e a
+  região de memória alocad dinamicamente (heap). Isso faz com que um
+  vetor alocado para todas as threads, ao ser modificado, cause falha
+  de página (diminuindo, e muito, a velocidade de processamento).
+    - Para contornar esse problema, podemos tornar as variáveis de soma
+      locais a cada thread. Isso agiliza MUITO a velocidade do programa,
+      pois essas variáveis ficam na pilha (e, potencialmente, em
+      registradores de cada processador), sendo necessário apenas
+      passá-las para variáveis globais (diretamente com OpenMP,
+      ou via uma sincronização com um vetor em apenas uma vez).
+
+* Utilizando pragmas e reduction, podemos tornar a versão sequencial do
+  pi numa versão paralela, com quase nenhuma dificuldade.
