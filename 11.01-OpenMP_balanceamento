@@ -1,0 +1,86 @@
+Balanceamento com OpenMP
+=========================
+
+* Uma das formas mais comuns de paralelizar o código com OpenMP é
+  paralelizar um 'for'. Entretanto, em geral, o número de threads e
+  processadores é menor do que o número de iterações. Para dividirmos o
+  trabalho do for, é necessário dividir a entrada em vários 'chunks'
+  (pedaços), entregues a cada processador.
+
+* Intuitivamente, as threads podem precisar ser sincronizadas. Utilizar
+  barreiras é o passo mais intuitivo para manter essa sincronização.
+  Entretanto, se tivermos os trabalhos diferentes em cada thread,
+  tomando tempos diferentes (ou sendo divididos entre máquinas /
+  processadores com velocidades diferentes), a barreira pode se tornar
+  um gargalo na execução do programa.
+
+* O OpenMP permite que o '#pragma' que define o processamente paralelo
+  defina uma política de balanceamento dos chunks entre os
+  processadores. Temos 4 políticas:
+
+    - static:
+        A política básica, em que o range de processamento é dividido em
+        partes iguais e o número de partes é dado em igual quantidade
+        para cada processador. Essa política é ineficiente caso uma das
+        threads seja mais lenta ou pegue um processamento maior.
+
+                        t1          t2          t3
+                      .----.      .----.      .----.
+                      | 01 |      | 04 |      | 07 |
+                      |    |      |    |      |    |
+                      |====|      |====|      |    |
+                      | 02 |      | 05 |      |    |
+                      |    |      |====|      |====|
+                      |====|      | 06 |      | 08 |
+                      | 03 |      '----'      |    |
+                      '----'                  |    |
+                                              |====|
+                                              | 09 |
+                                              '----'
+
+    - dynamic:
+        Novos chunks são dados aos processadores sob demanda. Se um dos
+        processadores terminar mais rápido, um novo chunk é fornecido e
+        ele pode continuar processando.
+
+                        t1          t2          t3
+                      .----.      .----.      .----.
+                      | 01 |      | 04 |      | 07 |
+                      |    |      |    |      |    |
+                      |====|      |====|      |    |
+                      | 02 |      | 05 |      |    |
+                      |    |      |====|      |====|
+                      |====|      | 03 |      | 06 |
+                      | 08 |      |====|      '----'
+                      |    |      | 09 |      
+                      |    |      '----'
+                      '----'
+
+    - guided:
+        O OpenMP adiciona código para tentar distribuir os chunks
+        segundo o tempo em que eles (possivelmente) tomarão para serem
+        processados. Dessa maneira, ele tenta igualar a quantidade de
+        processamento de cada thread.
+
+                        t1          t2          t3
+                      .----.      .----.      .----.
+                      | 01 |      | 04 |      | 06 |
+                      |    |      |    |      |====|
+                      |====|      |====|      | 09 |
+                      | 02 |      | 05 |      |====|
+                      |    |      |====|      | 07 |
+                      |====|      | 08 |      |    |
+                      | 03 |      |    |      |    |
+                      '----'      |    |      |    |
+                                  '----'      '----'
+
+        Embora 'guided' pareça a melhor opção, isso nem sempre é
+        verdade: pode ser que o código extra para definir qual a melhor
+        divisão entre chunks torne o programa mais lento que a opção
+        'dynamic', em muitas situações.
+
+    - auto
+        O 'auto' faz com que o compilador escolha entre as políticas
+        'static', 'dynamic' e 'guided', além de dar preferẽncia ao
+        'chunk_size'. Nem sempre a escolha do compilador é ótima, e é
+        importante testar as políticas para ver qual é a ideal.
