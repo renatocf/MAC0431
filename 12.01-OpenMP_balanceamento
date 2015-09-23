@@ -1,0 +1,27 @@
+Balanceamento com OpenMP
+=========================
+
+* O problema de gerar a fractal de Mandelbrot é embarassing parallel.
+  Podemos utilizar o OpenMP para paralelizar o cálculo dessa fractal,
+  que se baseia num mapeamento da imagem (x,y) para o plano de números
+  complexos. Executamos um passeio sobre o plano complexo, conforme a
+  função de Mandelbrot, e se o valor da variável divergir (ficar fora
+  de uma bola de raio r), colocamos um pixel preto. Caso contrário,
+  colocamos um pixel colorido. Como esse problema reage a diferentes
+  políticas de escalonamento? Em geral, a política 'guided' passa a
+  compensar nesse problema, pois cada coluna da imagem gerada (passada
+  para uma thread) tem uma quantidade de pixels pretos, que demoram
+  mais. Assim, dividindo o tempo por processo conforme a taxa de pixels
+  pretos, a política 'guided' faz com que as threads tenham bom
+  balanceamento.
+
+* Gerar números aleatórios entre threads também é complicado. Aplicar
+  apenas a função 'rand' não funciona, pois ela não é thread_safe (ela
+  usa uma única variável para gerar os números aleatórios). Isso
+  incluiria o número aleatório numa seção crítica, gerando um problema
+  de concorrência. Para combater isso, existe a função função 'rand_r',
+  que usa um número inteiro (inicialmente carregando a seed) no lugar
+  da variável de estado global. Como cada cópia da variável pertence
+  a uma das threads, todas geram a mesma sequência. Esse é um caso em
+  que fazer o cálculo várias vezes é mais correto e compensa mais do que
+  fazer uma sincronização, que tornaria a criação sequencial.
