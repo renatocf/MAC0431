@@ -1,0 +1,123 @@
+Revisão
+========
+
+* Concorrência
+    - Problema da seção crítica
+        - Busy-waiting
+        - Algoritmo Tie-breaker
+        - Semáforos
+
+    - Programas com muitos processos
+        - Espaço de memória separada (vários PCs) e comunicação inter-processo
+    - Programas com threads (processos leves)
+        - Compartilhamento de memória entre processos (1 PC)
+        - PThread (POSIX Threads, para manejamento de threads)
+
+* Otimização (alto desempenho)
+    - Laços
+        - Unit stride (preservar cache)
+        - Loop unroll (diminui o tempo gasto com operações do laço,
+          executando as operações internas de N em N, no lugar de 1 em 1)
+        - Block (decompor matrizes em pequenos blocos e executar em
+          pedaços que cabem no cache)
+    - Intrinsics
+        - Instruções vetoriais superescalares
+
+* Métricas de desempenho
+    - Tempo de execução: T(n)
+
+    - Aceleração / Speedup: S(n) = T(1)/T(n) (forma simples)
+
+    - Eficiência: S(n)/n (ganho de speedup por processador)
+
+    - Lei de Amdhal (S(n) < n)
+        - Existe um ponto a partir do qual a paralelização não compensa,
+          pois quase todos os programas têm uma parte sequencial de
+          cálculo, cujo peso começa a crescer conforme aumentamos o
+          número de processadores. Dessa maneira, S(n) < n, para algum
+          n número de processadores.
+
+        - De forma mais completa, o speedup pode ser definido como:
+
+                          S =  Tp + Ts
+                              ---------
+                              Tp/n + Ts
+
+          Quando n aumenta, Tp/n tende a 0 e o speedup converge para
+          Tp/Ts + 1. Isso faz com que speedup calculado em comparação
+          com código sequencial não otimizado aumente o speedup, pois
+          Ts (não otimizado) > Ts (otimizado) e Tp/Ts (não otimizado)
+          < Tp/Ts (otimizado).
+
+        - O speedup é mais complexo ainda, porque em geral existe um
+          overhead (To) de manutenção do maquinário de paralelismo:
+
+                          S =  Tp + Ts + To
+                              --------------
+                              Tp/n + Ts + To
+
+        - Em geral, o gráfico de crescimento do speedup fica:
+
+
+                     ^              .´ curva ideal
+              T1/Tn  |___________ .´___________
+                     |          .´      . . .
+                     |        .´   .         \  curva real
+                     |      .´ .              \
+                     |    .´.                  \
+                     |  .´.                     \
+                     |.´.                        `.
+                    -|-------------------------------> n processadores
+
+
+* Análise de dependências
+    - Criar um grafo com dependências entre instruções, para determinar
+      o que pode ou não ser paralelizado.
+
+    - Temos três tipos de dependências:
+        M → U (verdadeira)
+        U → M (antidependência)
+        M → M (saída)
+
+    - Apenas a dependência M → U precisa ser respeitada. As dependências
+      U → M e M → M podem ser resolvidas trocando os nomedas das
+      variáveis.
+
+    - O grafo de dependência tem relação com o escalonamento (que parte
+      do trabalho dar para cada thread / processo). Isso, em si, já é
+      complicado (pois a quantidade de possibilidades é combinatória). O
+      problema é mais complicado ainda, pois em geral (ao construir as
+      threads) não sabemos a duração de cada tarefa.
+
+    - O problema de escalonar pode ser piorado dependendo do que se
+      quiser otimizar. Se quisermos melhorar tanto o speedup quanto a
+      eficiência, precisamos achar o número de processadores ideal (e a
+      distribuição de tarefas entre ambos) que melhore nosso uso.
+
+* Paralelização e escalonamento de laços
+    - Dependendo de como tivermos as dependências em uma matriz, podemos
+      percorrê-la utilizando uma certa direção (perpendicular ao vetor
+      de dependência).
+    
+                    ^  \
+                    |   * * * * * *
+                    |  \ \.-^
+                    |   * * * * * *
+                    |  \ \ \      
+                    |   * * * * * *
+                   -|----\-\-\------------------>
+
+* OpenMP
+    - Especificação de pragmas (diretiva de compilador) + biblioteca
+      para execução de instruções que geram paralelismo (sem usar o
+      código diretamente).
+
+    - ALgumas das pragmas mais interessantes são:
+        - parallel (paraleliza um trecho de código)
+        - atomic (seção crítica possivelmente redutível para instrução
+          de hardware atômica)
+        - critical (seção crítica)
+        - for (para for em paralelo)
+        - private (cada thread tem sua cópia)
+        - shared (compartilhada entre threads)
+        - schedule (escalonamento - static, dynamic, guided)
