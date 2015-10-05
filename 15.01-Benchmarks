@@ -1,0 +1,47 @@
+Benchmarks
+===========
+
+* Benchmarks: medida de tempo / velocidade.
+
+    - MIPS (Millions of Instructions per Second)
+        Acabou se tornando pouco significativa (Meaningless Indicator of
+        Processos Speed), pois a quantidade de instruções feitas depende
+        de cada computador.
+
+    - Mflops (Mega Flops)
+        Contava o número de operações de ponto flutuante por segundo (que eram
+        mais uniformes entre os processadores). Já está parcialmente
+        ultrapassado, pois hoje os processadores são da ordem de Teraflops ou
+        Gigaflops.
+
+    - LINPACK (Linear Package)
+        Feito por Jack Dongarra, contabilizava quando cada computador leva para
+        resolver uma série de problemas de álgebra linear, testando a capacidade
+        de diferentes operações de ponto flutuante.
+        
+        O LINPACK não deu exatamente certo porque a primeira versão da matriz
+        tinha 200 x 200 de tamanho, e os produtores de máquinas começaram a
+        fazer caches com o tamanho dessas matrizes.
+
+        Atualmente, existe uma versão do LINPACK estendido (parametrizado) que
+        evita caches pré-definidos. Com esse benchmark, é feita a lista Top 500
+        dos maiores supercomputadores do mundo.
+
+    - SPLASH
+        Shared Memory - 8 aplicações escolhidas. O paralelismo já está
+        explicitado.
+
+    - NAS
+        Feito pela NASA, tem 3 versões:
+            - NPB1 - descrição do problema (a ser resolvida de qualquer maneira
+              pelo testador)
+            - NPB2 - 2 kernels e 3 aplicações (tem trechos de código (kernels)
+              que exercitam as instruções do computador)
+            - NPB3 - serial
+
+    - SPEC
+        Testado com números inteiros:
+            - SPEC89 - 10 programas com média geométrica - mistuda de instruções
+            - SPEC92 - 6 inteiros + 14 floats. Em 1994 os compiladores já se
+                       especializavam nesse benchmark.
+            - SPEC95 - maiores, mais longos, parecidos com operações reais.
