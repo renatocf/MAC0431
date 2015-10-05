@@ -1,0 +1,102 @@
+GPU (Graphical Processment Unit)
+=================================
+
+* Antigamente, a GPU dava suporte apenas a pipelines de renderização de
+  imagens. Bibliotecas, como o OpenGL, facilitam o acesso à essa
+  pipeline, permitindo programar parte do processamento dentro das GPUs.
+
+* Conforme as tarefas delegadas à GPU foram evoluindo, as GPUs foram
+  ganhando mais cores especializados. Entretanto, quando não estavam
+  fazendo algum dos processamentos, parte dos cores especializados
+  ficavam ociosos. Por conta disso, a estrutura especializada foi sendo
+  trocado por múltiplos cores mais completos.
+
+                                         .---------------------.
+                         mini-CPU        || |.----------------.|
+    | .-. | .-. | .-. |/.--------.       || ||### .-. .-. .-. || SM
+    | '-' | '-' | '-' / |        |       || ||### '-' '-' '-' ||
+    | .-. | .-. | .-./  |        |       || |'----------------'|
+    | '-' | '-' | '-'\  |####|  ||       || |.----------------.|
+    | .-. | .-. | .-. \ |####|  ||       || ||### .-. .-. .-. || SM
+    | '-' | '-' | '-' |\'--------'       || ||### '-' '-' '-' ||
+                          ^ memória      || |'----------------'|
+                      dispatcher         '---------------------'
+   vértices    fragmentos              memória ^     cores
+       renderização                       dispatcher
+
+* A GPU ainda é preparada para fazer o trabalho especializado gráfico.
+  Entretanto, cada unidade de processadores tem apenas 1 dispatcher de
+  instruções que são executados por vários cores. Esse componente,
+  chamado de 'stream multiprocessor' (SM), tem vários 'stream
+  processors' (SP). Essa organização permite execução generalizada,
+  rodando uma instrução em vários locais com vários dados.
+
+                                SM
+                      .--------------------.
+                      |.------------------.|
+                      || Cache instruções ||
+                      |'------------------'|
+                      |.------------------.|
+                      || Busca / Execução ||
+                      |'------------------'|
+                      |.------------------.|
+                      || Cache Constantes ||
+                      |'------------------'|
+                      | .--.  .--. .-----. |
+                      | |SP|  |SP| |  R  | |
+                      | '--'  '--' |  E  | |
+                      | .--.  .--. |  G  | |
+                      | |SP|  |SP| |  I  | |
+                      | '--'  '--' |  S  | |
+                      | .--.  .--. |  T  | |
+                      | |SP|  |SP| |  R  | |
+                      | '--'  '--' |  A  | |
+                      | .--.  .--. |  D  | |
+                      | |SP|  |SP| |  O  | |
+                      | '--'  '--' |  R  | |
+                      | .---..---. |  E  | |
+                      | |SFU||SFU| |  S  | |
+                      | '---''---' '-----' |
+                      |.------------------.|
+                      || Precisão dupla   ||
+                      |'------------------'|
+                      |.------------------.|
+                      ||     Memória      ||
+                      ||  compartilhada   ||
+                      |'------------------'|
+                      '--------------------'
+
+* Execução na GPU
+    - Para rodarmos um processo na GPU, separamos um trecho do programa
+      numa unidade chamada de kernel.
+      
+    - O kernel é dividido num conjunto de blocos, sendo que cada bloco
+      vai para um SM. O número de blocos do kernel é limitado pelo
+      número de SMs. Os SMs podem rodar em qualquer ordem relativa entre
+      uns e outros.
+      
+    - Cada bloco é composto de várias threads, todas executando a mesma
+      ação. Dentro de um laço, a thread representaria uma iteração de
+      um laço, com todas as iterações do laço sendo feitas ao mesmo tempo.
+      Nessas threads fica a lógica de sincronização necessária ao programa.
+
+    - Cada SM pega N threads, com N sendo o número de SPs que existem
+      dentro deles.
+
+    - O SM pede 4 instruções de cada uma dessas threads. O número 4 vem
+      de que as 4 instruções são feitas em 4 fases sequencialmente -
+      'fetch', 'decode', 'execute' e 'write'. O conjunto dessas 4
+      instruções para N threads é chamada de 'warp'.
+        - O termo 'warp' foi cunhado na época dos teares, e que
+          significava o entrelaçamento vertical / horizontal de fios num
+          tear mecânico (no caso, a combinação 4 instruções de N
+          threads).
+
+    - Cada warp é a menor unidade de alocação de instruções que pode ser
+      feita na GPU, porque é o mínimo que cada SM pode pedir para um
+      certo número de threads.
+
+    - Cada vez que um warp é concluído, o SM pega um novo warp, que pode
+      corresponder a outra quantidade de threads (em geral, o número de
+      threads é maior que o número de SMs, e elas passam por um
+      escalonamento).

@@ -1,0 +1,49 @@
+CUDA
+=====
+
+* Linguagem desenvolvida pela Nvídea para executar um conjunto de
+  instruções na GPU. É uma forma modificada de C e C++.
+* Para definirmos quanto blocos e quantas threads, teremos:
+
+    // Definição:
+    __global__ void nome_do_kernel (tipo_argumento, ...)
+    // 
+
+* A Grade (conjunto de blocos) e os Blocos (conjunto de threads)
+  podem ser classificados com 2 ou 3 índices. Essa representação não
+  é relevante para a execução - apenas para a organização do
+  programador e a representação do problema.
+
+
+* Arquitetura de compilação do programa
+
+                     .---------------------.
+                     | Aplicação em CUDA C |
+                     '---------------------'
+                               |
+                            .------.
+                            | NVCC |
+                            '------'
+                               |
+                .-------------------------------.
+                |                               |
+       .------------------.       .---------------------------.
+       | Kernel em CUDA C |       | Aplicação em C para a CPU |
+       '------------------'       '---------------------------'
+
+            CUDACC                  Compilador C para a GPU
+
+
+* Podemos usar funções especiais de CUDA no lugar da versões normal da
+  biblioteca C para realizar ações na GPU:
+
+  | if (cudaMalloc(&vet_d, TAM_VET * sizeof(double)) != cudaSuccess) {
+  |   fprintf(stderr, "Could not alloc block of size %d",
+  |           TAM_VET * sizeof(double));
+  | }
+
+  | if (cudaMemcpy(vet_d, vet, TAM_VET*sizeof(double),
+  |     cudaMemcpyHostToDevice) != cudaSuccess) {
+  |   fprintf(stderr, "Could not copy block of size %d",
+  |           TAM_VET * sizeof(double));
+  | }
