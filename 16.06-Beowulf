@@ -1,0 +1,11 @@
+Beowulf
+========
+
+* A arquitetura beowulf foi criada juntando várias máquinas antigas, lentas, que
+  não estavam sendo usadas, deixou-as com o hardware mínimo e as conectou com
+  MPI numa rede simples comandada por uma máquina melhor. Esse sistema ("antigo
+  e heroico", como o poema épico). Esse sistema era barato (só custava criar a
+  rede) e altamente paralelo, que valia a pena ser feito alguns anos atrás.
+
+* Os beowulfs foram superador porque hoje é possível fazer o mesmo usando
+  processadores bons e baratos, e as empresas já vendem essas soluções simples.

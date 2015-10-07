@@ -1,0 +1,217 @@
+Memória distribuída
+====================
+
+* Até o momento, vimos como fazer tarefas simultaneamente dentro de um ambiente
+  com memória compartilhada - seja essa divisão feita com fork, pthreads,
+  openmp, ou mesmo nas GPU.
+
+                        .---------------------------.
+                        |          MEMÓRIA          |
+                        '---.---.---.---.---.---.---'
+                            |   |   |   |   |   |
+                           ( ) ( ) ( ) ( ) ( ) ( )
+
+* A partir de agora, trabalharemos com memória distribuída - cada máquina só
+  poderá trocar informações por meio de troca de mensagens, feita por uma rede
+  de interconexões. Embora a troca de mensagens possa ser feita em memória
+  compartilhada, ainda há a opção de escrever numa região pré-definida.
+
+            .-------.     .-------.       .-------.     .-------.
+            |MEMÓRIA|..   |MEMÓRIA|..   ..|MEMÓRIA|   ..|MEMÓRIA|
+            '-------' |   '-------' |   | '-------'   | '-------'
+              |   |   |     |   |   |   |   |   |     |   |   |
+             ( ) ( )  |    ( ) ( )  |   |  ( ) ( )    |  ( ) ( )
+                      |             |   |             |
+        =============="============="==="============="==============
+                            REDE DE INTERCONEXÃO
+
+    - Chamamos de "blade" cada conjunto de unidades de processamento (ex: várias
+      CPUs presentes dentro de uma mesma máquina).
+
+* Vantagens e desvantagens dos modelos
+    - A criação de programas para memória compartilhada é mais simples e próxima
+      dos programas sequenciais. Entretanto, construí-la é mais difícil, porque
+      se uma CPU tem 4 cores, seu desempenho depende do seu tipo de barramento e
+      de processadores. Adicionar mais processamento requer trocar o
+      processador.
+
+    - A criação de programas em memória distribuída é mais lenta. Entretanto,
+      construí-la e escalá-la é bem mais simples, pois basta adicionar mais uma
+      máquina. Caso uma máquina falhe, basta trocá-la e a rede continua
+      funcionando.
+
+* Topologia de redes de interconexão
+    - Originalmente, na época das máquinas processadas, estudava-se muito a
+      forma como as máquinas eram conectadas, dado que esse era o maior custo.
+      Hoje, com a nuvem, esse custo se reduziu, mas as arquiteturas de redes
+      ainda são importantes para a criação de algoritmos.
+
+    - Conexão em linha
+        - A arquitetura mais simples, mas que poderia causar um lag para a
+          conexão entre pontos muito distantes da rede.
+
+                ( )======( )======( )======( )======( )======( )
+
+    - Conexão em anel
+        - A conexão em anel é uma expansão trivial da linha, em que conectamos
+          vários blades de forma circular. Vários algoritmos (principalmente os
+          de distribuição de tarefas entre máquinas) se beneficiam dessa
+          arquitetura.
+        - Essa arquitetura tem como desvantagem que a conexõa mais longa tem
+          o diâmetro do anel. Além disso, para comunicar blades opostos, as
+          mensagens precisam ser reenviadas em cada nó do grafo. Esse custo
+          diminuiu porque hoje as próprias placas de rede fazem esses reenvios,
+          no processo chamado de "roteamento" (usado na internet).
+
+                                  ( )======( )
+                                 //         \\
+                                //           \\
+                               //             \\
+                              ( )             ( )
+                               \\             //
+                                \\           // 
+                                 \\         //  
+                                  ( )======( )
+
+    - Conexão em grid
+
+                       (  )======(  )======(  )======(  )
+                        ||        ||        ||        ||
+                        ||        ||        ||        ||
+                        ||        ||        ||        ||
+                       (  )======(  )======(  )======(  )
+                        ||        ||        ||        ||
+                        ||        ||        ||        ||
+                        ||        ||        ||        ||
+                       (  )======(  )======(  )======(  )
+                        ||        ||        ||        ||
+                        ||        ||        ||        ||
+                        ||        ||        ||        ||
+                       (  )======(  )======(  )======(  )
+
+    - Conexão em toro
+        - Melhora o grid fazendo todos tendo 4 conexões
+
+                   ''=========================================''
+                   ||    ....      ....      ....      ....   ||
+                   ||   // ||     // ||     // ||     // ||   ||
+                   ''==(  )======(  )======(  )======(  )=====''
+                        || ||     || ||     || ||     || ||     
+                   ..===||=||=====||=||=====||=||=====||=||===..
+                   ||   || ||     || ||     || ||     || ||   ||
+                   ''==(  )======(  )======(  )======(  )=====''
+                        || ||     || ||     || ||     || ||
+                        || ||     || ||     || ||     || ||
+                        || ||     || ||     || ||     || ||
+                   ..==(  )======(  )======(  )======(  )=====..
+                   ||   || ||     || ||     || ||     || ||   ||
+                   ''===||=||=====||=||=====||=||=====||=||===''
+                        || ||     || ||     || ||     || ||
+                   ..==(  )======(  )======(  )======(  )=====..
+                   ||   \\ ||     \\ ||     \\ ||     \\ ||   ||
+                   ||    ''''      ''''      ''''      ''''   ||
+                   ''=========================================''
+
+    - Estrela
+
+                                       (  )
+                                        ||
+                                        ||
+                                        ||
+                              (  )=====(  )=====(  )
+                                       //\\
+                                      //  \\
+                                     //    \\
+                                   (  )    (  )
+
+    - Clique (grafo completo)
+                                      .(  ).
+                                    .´.´..`.`.
+                                  .´.´ .... `.`.
+                                .´.´  ..  ..  `.`.
+                               (  )============(  )
+                                 \\   .    .   //
+                                  \\ ..    .. //
+                                   \\..    ..//
+                                   (  )====(  )
+
+    - Hipercubo
+        - Ordem 1
+                                       (  )
+
+        - Ordem 2 (linha)
+                                  (  )======(  )
+
+        - Ordem 3 (anel)
+                                  (  )======(  )
+                                   ||        ||
+                                   ||        ||
+                                   ||        ||
+                                   ||        ||
+                                  (  )======(  )
+
+        - Ordem 4
+                          ..==========================..
+                          ||                          ||
+                         (  )======(  )====(  )======(  )
+                          ||        ||      ||        ||
+                          ||        ||      ||        ||
+                          ||        ||      ||        ||
+                          ||        ||      ||        ||
+                         (  )======(  )====(  )======(  )
+                          ||                          ||
+                          ''==========================''
+
+        - Ordem 5
+
+                  ..-----------------------------------------..
+                  ||                                         ||
+                 (  )============(  )=======(  )============(  )
+                 ||\\  ..--------//||-------||\\---------.. //||
+                 || \\ ||     ..//-||-------||-\\..      ||// ||
+                 || (  )======(  ) ||       || (  )======(  ) ||
+                 ||  ||        ||  ||       ||  ||        ||  ||
+                 ||  ||        ||  ||       ||  ||        ||  ||
+                 ||  ||        ||  ||       ||  ||        ||  ||
+                 ||  ||        ||  ||       ||  ||        ||  ||
+                 || (  )======(  ) ||       || (  )======(  ) ||
+                 || //||      ''\\-||-------||-//''      ||\\ ||
+                 ||// ''---------\\||-------||//---------'' \\||
+                 (  )============(  )=======(  )============(  )
+                  ||                                         ||
+                  ''-----------------------------------------''
+
+    - A ordem dos hipercubos determina a quantidade de nós que haverá no grafo.
+      Para um hipercubo de ordem 5, temos 2^5 = 32 nós.
+    - Construímos um hipercubo de ordem maior conectando nós simétricos em um
+      hipercubo de ordem N-1 (construção recursiva). Dessa maneira, cada nó do
+      grafo tem conectividade N-1.
+    - Por meio dessa construção, temos sempre N camadas construídas,
+      correspondendo às conexões feitas cada vez que vamos construindo o
+      hipercubo recursivamente.
+    - Qual o diâmetro desse grafo? (maior caminho conectando 2 nós)? N
+      (logaritmo do número de nós no grafo). Isso pode ser provado de duas
+      maneiras:
+        - Coloração: considerando que cada conexão é construída de forma
+          recursiva, podemos mostrar a conexão de cada camada por uma cor. Dessa
+          forma, cada nó terá uma aresta de cada cor. No pior caso, podemos
+          percorrer até 4 cores distintas entre cada nó (correspondente à cada
+          dimensão do hipercubo), e esse será o diâmetro do grafo.
+        - Rotulação: podemos representar cada nó por um número binário de N
+          dígitos. Para mudar de um para nó para o outro, precisamos mudar até,
+          no máximo, N bits. Cada bit modificado corresponde à mudança de uma
+          dimensão, e dessa maneira o diâmetro será no máximo N.
+            - A indexação por N bits é muito boa porque podemos montar um
+              hipercubo sem precisar montar o hipercubo de verdade.
+
+* PVM e MPI
+    - Como criar essas arquiteturas explicitamente era difícil, um grupo de uma
+      universidade criou o PVM (Parallel Virtual Machine), que permitia criar
+      arquiteturas diferentes por meio de daemons, em vez de escrever via
+      sockets em cada programa cliente.
+
+    - O PVM foi caindo em desuso, e os criadores do PVM resolveram generalizá-lo
+      nuam especificação de biblioteca + programas (mpicc e mpirun). Essa
+      especificação era o MPI (Message Passing Interface).
+        - Várias implementações foram criadas: LAM, MPICH, CHIMP e OpenMPI (nome
+          de brincadeira com OpenMP).

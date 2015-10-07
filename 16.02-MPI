@@ -1,0 +1,95 @@
+MPI (Message Passing Interface)
+================================
+
+* Conceitos básicos
+    - Bloqueante
+        O MPI está preocupado, principalmente, na forma como é feita a conexão
+        entre dois nós. Consideremos que temos uma arquitetura com 2 nós, em que
+        A vai passar uma mensagem para B:
+
+                            ( )========( )
+                             A          B
+
+        - As messagens passadas podem ser feitas de 2 maneiras:
+            - síncrona: a mensagem *bloqueia* A, esperando pela resposta de B.
+            - assíncrona: a mensagem *não bloqueia* A. Ele continua seu
+              processamento até B acabar.
+
+        - Fazer mensagens bloqueantes é uma forma de sincronização.
+        - Mesmo com uma biblioteca puramente síncrona, podemos usar threads para
+          que os programas tenham comportamento assíncrono.
+
+    - Local
+        - A mensagem depende apenas da máquina / processador local.
+
+    - Coletiva
+        - Comunicação de grupo, em que todos devem participar, mas não envolve
+          necessariamente a sincronização.
+
+    - Portável
+        - Tipo de dado que é representado igualmente em qualquer memória.
+            - Ex: tipos como "long int" têm tamanho variável segundo o
+              barramento da arquitetura (32 bits em máquinas x32, 64 bits nas
+              máquinas x64).
+
+    - Equivalente
+        - Tipos constuídos da mesma forma (little endian vs big endian)
+
+* Coletivas
+
+    .-----------.--------------------------------------------------------------.
+    | Barrier   | Barreira.                                                    |
+    |-----------|--------------------------------------------------------------|
+    | Broadcast | Mensagem para todos.                                         |
+    |-----------|--------------------------------------------------------------|
+    | Gather    | Recolher, juntando pedaços do processamento em um nó.        |
+    |-----------|--------------------------------------------------------------|
+    | Scatter   | Espalhar, mandando pedaços para diferentes nós.              |
+    |-----------|--------------------------------------------------------------|
+    | AllGather | Todos recebem o resultado do Gather, fracamente equivalente  |
+    |           | a um gather + broadcast, mas mais eficiente.                 |
+    |-----------|--------------------------------------------------------------|
+    | AllToAll  | Todos recebem a parte correspondente da mensagem, que está   |
+    |           | espalhada nos processadores.                                 |
+    |           |                                                              |
+    |           | Ex:                                                          |
+    |           |      0     1     2     3            0     1     2     3      |
+    |           |     ===   ===   ===   ===          ===   ===   ===   ===     |
+    |           |      a     α     A     Α            a     b     c     d      |
+    |           |      b     β     B     Β            α     β     γ     δ      |
+    |           |      c     γ     C     Γ            A     B     C     D      |
+    |           |      d     δ     D     Δ            Α     Β     Γ     Δ      |
+    |-----------|--------------------------------------------------------------|
+    | Reduction | Escolhe o melhor dado segundo uma informação.                |
+    |-----------|--------------------------------------------------------------|
+    | Reduction | Junta dados e depois os redistribui.                         |
+    | + Scatter |                                                              |
+    |-----------|--------------------------------------------------------------|
+    | Scan R    | Varredura (redução processiva por prefixo).                  |
+    '-----------'--------------------------------------------------------------'
+
+* Conceitos
+    - Usaremos processo / processador de forma intercambiável - o processo é a
+      unidade lógica que faz parte da rede.
+
+    - Grupo é uma coleção ordenada de processos (ids).
+    - Contexo é uma propriedade que restringe o escopo de comunicação.
+    - Comunicador é um grupo com contexo definido.
+    - Topologia é uma estrutura virtual de conexão entre os processo.
+
+
+                    ( )         ( )     .--| comunicador |--.
+                                        | ( )               |
+                         ( )            |  \\               |
+                                        |   \\              |
+                                        |    ( )========( ) |
+                                        '-------------------'
+                   .-| grupo |----------.
+                   |        ( )         |
+                   |                ( ) |
+                   | ( )                |           ( )
+                   |             ( )    |
+                   '--------------------'
+                                            ( )
+                          ( )
+
