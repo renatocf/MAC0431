@@ -1,0 +1,13 @@
+MPI (Message Passing Interface)
+================================
+
+* Para compilar um programa usando o MPI, podemos usar o 'mpicc' (pequeno shell
+  script sobre o compilador da máquina que adiciona flags apropriadas para rodar
+  o MPI). Ex:
+
+          mpicc -ansi -Wall -pedantic -O3 mpi_program.c -o mpi_program
+
+* Para rodar um programa usando o MPI, usamos o 'mpirun', que aceita flags para
+  determinar vários aspectos do funcionamento do MPI.
+
+                           mpirun -np 4 mpi_program

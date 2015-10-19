@@ -1,0 +1,38 @@
+Desafio
+========
+
+* Problema "ondas irreais"
+    - Baseado em sóliton ("ondas solitárias") que não se desfazem e têm
+      comportamento parecido com a de partículas.
+        - Correspondem à solução de uma equação diferencial não-linear.
+
+    - Teremos um tanque quadrado, e de tempos em tempos, numa dada posição
+      do tanque, teremos uma "onda" gerada cuja propagação será como a de
+      um sóliton (não se espalhará com o tempo).
+
+        .---------------------------.
+        |   /¨¨¨\                   |  ^
+        |  / /¨\ \                  |  |
+        | | | * | |                 |  |    :              :
+        |  \ \_/ /          /¨\     |  |    :              :
+        |   \___/          | * |    |  |    :              :
+        |                   \_/     |  |    :       ..     :
+        |                           |  |....:...  .´  `....:......
+        |                           |  |    :   `´         :
+        |                           |  |    :              :
+        |              /¨\          |  |    :              :
+        |              \_/          |  |    :              :
+        |                           |  +------------------------->
+        '---------------------------'
+
+    - Nesse campo, teremos "esponjas" que vão interferir na propagação,
+      absorvendo completamente a onda.
+
+    - As "esponjas" andarão pelo tanque, se propagando e "refletindo" nas
+      fronteiras do tanque.
+
+    - Ainda definiremos qual a função de onda e como ela mudará o tamanho.
+
+    - Entrada: semente de geração aleatória + número de iterações.
+    - Saída:   imagem "heatmap" representando com cores as alturas
+               numa dada iteração.
