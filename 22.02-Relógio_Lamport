@@ -1,0 +1,42 @@
+Relógio de Lamport
+===================
+
+* O relógio de Lamport é um algoritmo de computação distribuída para
+  que várias máquinas possam sincronizar suas mensagens.
+
+* As condições para o problema são:
+    - Desejamos ter uma ordem parcial entre as mensagens
+    - Cada máquina terá seu relógio interno que não necessariamente
+      é sincronizado.
+
+* Ex:
+
+            A           B           C           D           E
+       H:10 {      H:12 {      H:12 {      H:20 {       H:3 {
+            }           }           }           }           }
+            {           {           {      H:21 {<----------{ H:4
+            }           }           }           }           }
+       H:11 {---------->{ H:13      {           {           {
+            }           }           }           }           }
+            {           {      H:13 {---------->{ H:22      {
+       H:12 }-----------}---------->} H:14      }           }
+            {           {           {           {           {
+       H:15 }<----------} H:14      }           }           }
+        ^   {           {      H:24 {<----------{ H:23      {
+        |   }           }           }           }           }
+        |   {      H:15 {---------->{ H:25      {           {
+        |   }           }           }           }           }
+        |
+        '---- O tempo atualizado será max{ H_atual, H_msg } + 1
+
+    - A ordenação parcial entre as mensagens será:
+
+                                11 A → B
+                                13 B ← A
+                                12 A → C
+                                14 B → A
+                                15 A ← B
+                                13 C → D
+                                21 D ← C
+                                22 D → C
+                                23 C ← D

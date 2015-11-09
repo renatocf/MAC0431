@@ -1,0 +1,67 @@
+Programação Distribuída
+========================
+
+* Para a programação distribuída, um dos conceitos relevantes na hora
+  de criar algoritmos é a topologia da conexão. Embora o tempo seja
+  pouco relevante atualmente (por conta da melhora da infraestrutura).
+  As topologias, em ferramentas como MPI, são virtuais, e algumas
+  das principais são:
+    - Anel
+    - Estrela
+    - Árvore
+    - Grafo completo (mais básico)
+
+  As conexões de hardware podem ser diferentes, mas em geral a camada
+  de software emulam essas topologias.
+
+* Existem alguns conceitos importantes (suposições) para construir
+  os algoritmos de programação distribuída:
+
+    - Canais de comunicação
+        1. Transmissão sem duplicação de mensagens.
+        2. Transmissão sem modificação de mensagens.
+        3. Mensagens são recebidas na mesma ordem em que foram enviadas.
+        4. Mensagens não são perdidas (o tempo para uma mensagem ser 
+           entregue é finito, ainda que aleatório).
+        5. Mensagens são entregues em um tempo máximo conhecido. Caso
+           não se considere a hipótese anterior, existe um tempo após
+           o qual a mensagem não chegará mais.
+
+    - Níveis de simetria do particionamento
+        1. Assimetria: cada processo corresponde a um programa
+           diferente (ex: cliente-servidos). Análogo a MIMD.
+        2. Simetria textual: o programa é o mesmo, a menos de referências
+           internas ao nome. Os nomes dos processos são diferentes.
+           SPMD, forçando a analogia.
+        3. Simetria forte: os programas e os nomes são os mesmos,
+           o comportamento muda de acordo com as mensagens. SIMD ou
+           SPMD, forçando um pouco menos.
+        4. Simetria total: todos os processos se comportam da mesma
+           maneira.
+
+        De modo mais ou menos ligado à simetria, existe a noção de
+        tolerância a falhas. Se um processo cair, ele pode ser
+        substituído por outros.
+
+* Existem vários princípios que podem ser usados e ajudar a criar um
+  algoritmos de programação distribuída:
+    - Conervação de invariantes do programa.
+    - Prinícpio de satisfazer as condições necessárias.
+    - Empírica (mais comum).
+
+* Técnicas básicas
+
+    - Difusão de computações
+        Mesma ideia de broadcast, difusão e redução. Usada para criar
+        spanning trees (árvores geradoras).
+
+    - Token
+        A ideia de token para garantir controle supõe uma arquitetura
+        em anel. É bem simples e simétrica.
+
+    - Time stamping
+        Em computação distribuída, não temos como sincronizar os
+        relógios. Os relógios de cada máquina não são confiáveis
+        (pode haver diferenças de clock, por exemplo, ou o relógio
+        estar mal ajustado). Para lidar com o problema de criar
+        uma ordenação para as mensagens, existe o relógio de Lamport.
