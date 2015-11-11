@@ -1,0 +1,28 @@
+Algoritmos em Anel
+===================
+
+* Na aula anterior, vimos o relógio de Lamport para criar uma ordenação
+  parcial das mensagens trocadas no sistema.
+
+* Nessa aula, veremos algoritmos para topologia em anel. O anel é
+  interessante por ser uma arquitetura simples de pensar e que tem
+  vários algoritmos interessantes.
+
+                            ( )--------( )
+                          .´              `.
+                        .´                  `.
+                      .´                      `.
+                    ( )                        ( )
+                     |                          |
+                     |                          |
+                     |                          |
+                     |                          |
+                    ( )                        ( )
+                      `.                      .´
+                        `.                  .´
+                          `.              .´
+                            ( )--------( )
+
+* Os algoritmos em anel são baseados no conceito de 'token' - uma mensagem
+  especial que percorre o anel e vai "repassando" uma ideia. O token, para
+  isso, precisa passar por todos os elementos do anel.

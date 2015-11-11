@@ -1,0 +1,96 @@
+Algoritmo de eleição
+=====================
+
+* Temos um anel e, em algum momento, perdemos um dos nós. As funções desse nó
+  precisam ser repassadas para alguém. Quem será o eleito? Precisamos fazer uma
+  *eleição* do melhor nó para realizar a tarefa.
+    - Esse é um exemplo que motiva o algoritmo de eleição.
+
+                                ( )--------( )
+                              .´              `.
+                            .´                  `.
+                          .´                      `.
+                        ( )                        ( )
+                         |                          |
+                         |                          |
+                         |                          |
+                         |                          |
+                        ( )                        ( )
+                          `.                      .´
+                            `.                  .´
+                              `.              .´
+                                ( )--------( )
+
+
+* Nosso token da eleição terá duas informações: id e "força" do maior número
+  atual. Suponhamos os seguintes nós com usas respectivas "forças":
+
+                              0,i^i        1,42 #
+                                ( )--------( )
+                              .´              `.
+                            .´                  `.
+                          .´                      `.
+                    7,φ ( )                        ( ) 2,17
+                         |            ..            |
+                         |          .´  \           |
+                         |           \  \/          |
+                         |                          |
+                  6,-13 ( )                        ( ) 3,21
+                          `.                      .´
+                            `.                  .´
+                              `.              .´
+                                ( )--------( )
+                             # 5,72        4,π
+
+
+    - Para resolver esse problema, podemos considerar que cada nó pode estar em
+      quatro diferentes estados ao longo do tempo. Esses estados e suas
+      transições são dadas pelo seguinte autômato:
+
+                                   .------.
+                                   | fora |
+                                   '------'
+                              repassa |   `.  gera token
+                                      |     `.
+                   .--------.         |       \|.-----------.
+                   | ganhou |<--------|-------- | candidato |
+                   '--------'   não   |       .´'-----------'
+                              repassa |     .´ repassa
+                                      \/  |/
+                                  .--------.
+                                  | perdeu |
+                                  '--------'
+
+    - Quando um nó recebe um token cujo resultado é MENOR que o dele, e ele já
+      era um candidato (ou seja, já votou em outra eleição lançada por algum
+      nó), ele não repassa a mensagem (pois essa mensagem está sendo repassada
+      e o tem como candidato principal).
+
+    - Simulando o algoritmo para o exemplo acima:
+
+                :   #   :       :       :       :   #   :       :
+            0   :   1   :   2   :   3   :   4   :   5   :   6   :   7
+           i^i  :  42   :  17   :  21   :   π   :  72   :  -13  :   φ
+         =======:=======:=======:=======:=======:=======:=======:=======
+                : →1,42 :       :       :       : →5,72 :       :
+                :       : →1,42 :       :       :       : →5,72 :
+                :       :       : →1,42 :       :       :       : →5,72
+          →5,72 :       :       :       : →1,42 :       :       :
+                : →5,72 :       :       :       :   x   :       :
+                :       : →5,72 :       :       :       :       :
+                :       :       : →5,72 :       :       :       :
+                :       :       :       : →5,72 :       :       :
+                :       :       :       :       :  win! :       :
+
+    - Esse algoritmo tem complexidade:
+        - O(n²) no pior caso (vetor ordenado na ordem reversa).
+        - O(n) no melhor caso / caso médio.
+
+        - Exemplo para o pior caso:
+
+                                  4   3   2   1
+                                =================
+                                  →   →   →   →
+                                      →   →   →
+                                          →   →
+                                              →
