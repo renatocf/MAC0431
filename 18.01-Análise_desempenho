@@ -1,0 +1,90 @@
+Análise de desempenho
+======================
+
+* Nas aulas anteriores, vimos algumas métricas interessantes para o
+  cálculo do desempenho da paralelização:
+    - Tempo de execução
+    - Speedup (aceleração)
+    - Eficiência
+    - Custo
+    - Energia
+
+* Para que possamos analisar um problema e ver as vantagens /
+  desvantagens nos modelos construídos, precisamos ter:
+    - "conhecimento" dos tempos de execução
+    - "conhecimento" das possíveis sobrecargas
+    - modelar a composição desses elementos
+
+* Para verificarmos o desempenho do programa, podemos ter diferentes
+  tipos de modelo:
+    - Analítico:   Descreve o comportamento do sistema de forma
+                   matemática, em geral utilizando a estrutura do
+                   problema.
+    - Estatístico: Descreve o comportamento do sistema de forma
+                   estatística, em geral fazendo aproximações e usando
+                   inferência (frequentista ou bayesiana). Consiste,
+                   em geral, de verificar a distribuição que rege
+                   o modelo.
+    - Simulação:   Utiliza um programa simulador para analisar o
+                   problema ou identificar possíveis gargalos.
+
+* Quando estamos construindo os modelos para análise de desempenho, é
+  importante analisar as sobrecargas que podem existir no sistema.
+  Temos várias possibilidades:
+    - Sobrecarga em memória distribuída:
+        - Comunicação:
+            - velocidade (largura de banda / latência)
+            - arquitetura de rede
+        - Contenção na rede
+
+    - Sobrecarga em memória compartilhada:
+        - Seção crítica
+            - Semáforos → tratamento da fila de espera → serialização
+            - Gerenciamento de processos
+            - Troca de contexto
+        - Cache
+        - Contenção de memória
+
+    - Sobrecarga relativa ao problema
+        - Quantidade de entrada e saída
+        - Balanceamento de carga
+        - Paralelismo insuficiente
+
+* A análise de desempenho é importante em todas as fases de resolução de
+  um problema / criação de um software:
+    - Concepção:  Ao criar um sistema, muitas vezes um requisito
+                  importante é o tempo máximo em que alguns processos
+                  podem ser feitos.
+    - Execução:   Durante a execução, podemos querer atualizar as
+                  estimativas de execução para ver quando a execução
+                  deve acabar. Esse problema é especialmente
+                  interessante ao rodar programas na cloud.
+    - Avaliação:  Após terminar a execução, podemos analisar se o
+                  desempenho obtido foi esperado ou interessante.
+
+* Como podemos diminuir o custo da comunicação?
+    - Se dividimos os cálculos entre vários processadores, e o programa
+      for interrompido para tratar uma mensagem, o programa pode ficar
+      muito mais lento:
+
+    - Uma boa maneira de postergar o problema é:
+        - Enviar a mensagem o mais cedo possível (hoist)
+        - Receber a mensagem o mais tarde possível (sink)
+
+                        P1                  P2
+                        >                   >
+                        >                   >
+                        >                   >
+                        >.                  >
+                        | `.                >
+                        |   `.              >
+                        |     `.            >
+                        |       `.          >
+                        |         `.        >
+                        |           `.      >
+                        |             `.    >
+                        |               `.  >
+                        |                 `.>
+                        |             `.    >
+
+    - Desse modo, o custo de comunicação fica próxima do zero.

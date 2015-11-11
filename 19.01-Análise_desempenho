@@ -1,90 +1,194 @@
 Análise de desempenho
 ======================
 
-* Nas aulas anteriores, vimos algumas métricas interessantes para o
-  cálculo do desempenho da paralelização:
-    - Tempo de execução
-    - Speedup (aceleração)
-    - Eficiência
-    - Custo
-    - Energia
+* Livro: The Art of Computer Systems Performance Analysis
+  (Raj Jain, J. Wiley Lisons)
 
-* Para que possamos analisar um problema e ver as vantagens /
-  desvantagens nos modelos construídos, precisamos ter:
-    - "conhecimento" dos tempos de execução
-    - "conhecimento" das possíveis sobrecargas
-    - modelar a composição desses elementos
+* Dicas para fazer análise de desempenho
+    - A representação visual de dados - principalmente no contexto de
+      big data - é muito importante para compreender a evolução dos
+      problemas.
 
-* Para verificarmos o desempenho do programa, podemos ter diferentes
-  tipos de modelo:
-    - Analítico:   Descreve o comportamento do sistema de forma
-                   matemática, em geral utilizando a estrutura do
-                   problema.
-    - Estatístico: Descreve o comportamento do sistema de forma
-                   estatística, em geral fazendo aproximações e usando
-                   inferência (frequentista ou bayesiana). Consiste,
-                   em geral, de verificar a distribuição que rege
-                   o modelo.
-    - Simulação:   Utiliza um programa simulador para analisar o
-                   problema ou identificar possíveis gargalos.
+    - Em muitos casos, o objetivo das otimizações feitas para computação
+      de alto desempenho não são muito claras. Caracterizar o problema
+      (saber o que medir) é essencial.
 
-* Quando estamos construindo os modelos para análise de desempenho, é
-  importante analisar as sobrecargas que podem existir no sistema.
-  Temos várias possibilidades:
-    - Sobrecarga em memória distribuída:
-        - Comunicação:
-            - velocidade (largura de banda / latência)
-            - arquitetura de rede
-        - Contenção na rede
+    - É muito importante fazer medidas de forma sistemática - não
+      utilizar uma técnica bem definida torna os dados coletados de
+      confiança duvidosa.
 
-    - Sobrecarga em memória compartilhada:
-        - Seção crítica
-            - Semáforos → tratamento da fila de espera → serialização
-            - Gerenciamento de processos
-            - Troca de contexto
-        - Cache
-        - Contenção de memória
+    - É essencial entender o problema antes de começar a fazer uma
+      análise, pois sem os entendimento, as medidas tornam-se espúrias.
 
-    - Sobrecarga relativa ao problema
-        - Quantidade de entrada e saída
-        - Balanceamento de carga
-        - Paralelismo insuficiente
+    - Definir as métricas certas para o problema identificado é
+      importante para que as análises façam sentido e gerem correlações
+      pertinentes para resolvê-lo.
 
-* A análise de desempenho é importante em todas as fases de resolução de
-  um problema / criação de um software:
-    - Concepção:  Ao criar um sistema, muitas vezes um requisito
-                  importante é o tempo máximo em que alguns processos
-                  podem ser feitos.
-    - Execução:   Durante a execução, podemos querer atualizar as
-                  estimativas de execução para ver quando a execução
-                  deve acabar. Esse problema é especialmente
-                  interessante ao rodar programas na cloud.
-    - Avaliação:  Após terminar a execução, podemos analisar se o
-                  desempenho obtido foi esperado ou interessante.
+* Representação de dados
 
-* Como podemos diminuir o custo da comunicação?
-    - Se dividimos os cálculos entre vários processadores, e o programa
-      for interrompido para tratar uma mensagem, o programa pode ficar
-      muito mais lento:
+    - Categorização dos dados
 
-    - Uma boa maneira de postergar o problema é:
-        - Enviar a mensagem o mais cedo possível (hoist)
-        - Receber a mensagem o mais tarde possível (sink)
+                                .-----------.
+                                | Variáveis |
+                                '-----------'
+                                      |
+                      .------------------------------.
+               .-------------.                .--------------.
+               | Qualitativa |                | Quantitativa |
+               '-------------'                '--------------'
+                      |                              |
+              .---------------.               .--------------.
+        .----------.  .--------------.  .----------.    .----------.
+        | Ordenada |  | Não ordenada |  | Discreta |    | Contínua |
+        '----------'  '--------------'  '----------'    '----------'
 
-                        P1                  P2
-                        >                   >
-                        >                   >
-                        >                   >
-                        >.                  >
-                        | `.                >
-                        |   `.              >
-                        |     `.            >
-                        |       `.          >
-                        |         `.        >
-                        |           `.      >
-                        |             `.    >
-                        |               `.  >
-                        |                 `.>
-                        |             `.    >
+        - Categorizar os dados pode ser uma boa forma de começar
+          uma representação.
 
-    - Desse modo, o custo de comunicação fica próxima do zero.
+    - Intuição
+        - Ao fazer um heatmap ou um mapa com cores representando certo
+          fenômeno, cada pessoa (ou área) pode ter uma intuição de qual
+          cor é associada com o aumento / diminuição de uma medida. É
+          importante sempre contextualizar o público-alvo da
+          presentação. Em alguns casos, dar várias opções é importante.
+
+    - Rotulação
+        - Em geral, rotular diretamente é melhor que criar uma legenda,
+          porque ficar "saltando" do gráfico para a legenda pode
+          atrapalhar a intuição que o gráfico daria.
+
+    - Quantidade de dados
+        - É importante tomar cuidado com a quantidade de dados
+          representada em apenas um gráfico, pois poluí-lo pode
+          atrapalhar o que é visto.
+
+    - Escala
+        - A escala pode ser utilizada para manipular a representação
+          dos dados, passando um significado que não condiz com a
+          realidade. Não viesar os gráficos é muito importante para
+          manter uma representação "honesta" dos dados.
+
+    - Média e desvio-padrão
+        - Medidas calculadas como médias precisam ter a faixa de
+          variação do desvio-padrão representada junto a curva,
+          pois a diferença pode ser pequena ao mostrar os erros
+          (as duas curvas podem estar uma dentro do erro da outra).
+
+* Gráfico Kiviat
+                                    .´|`.
+                                  .´ #|  `.
+                                 / `.#|#.´ \
+                                /__##`|´##__\
+                                \   #.|.#   /
+                                 \ .´#|#`. /
+                                  `.  |# .´
+                                    `.|.´
+                        
+    - O gráfico Kiviat pode ser usado para representar múltiplos
+      parâmetros ao mesmo tempo. Ele consiste de um círculo dividido 
+      em N partes, cada uma com um ponto conectado. A figura cormada,
+      quanto mais circular, melhor representa um balanceamento entre
+      os diferentes parâmetros.
+
+    - Ex: Kiviat com uso de computador
+
+                                     CPU
+                                    total
+                                    .´|`.
+                        CPU alone .´  |  `. System
+                                 / `. | .´ \
+            CPU + Communication /____`|´____\ User
+                                \    .|.    /
+                                 \ .´ | `. /
+                   Communication  `.  |  .´ CPU wait
+                          alone     `.|.´
+                                 Communication
+                                    total
+
+        - Na situação ideal, queremos ter o máximo uso da CPU,
+          o máximo de CPU com comunicação e o máximo de comunicação com
+          o máximo de usuários - dessa maneira, o sistema estará cheio
+          (com cálculos e comunicação) a todo o momento, quando tivermos
+          o máximo de usuários. Não queremos perder tempo com só a CPU
+          calculando sozinha, só comunicações sendo feitas dozinhas, só
+          o sistema trabalhando e só a CPU esperando. Dessa maneira, o
+          Kiviat idela terá o formato de uma estrela (pois parâmetros
+          "bons" e "ruins" são alternados).
+
+                                     CPU
+                                    total
+                                    .´|`.
+                        CPU alone .´ #|# `. System
+                                 / `.#|#.´ \
+            CPU + Communication /####`|´####\ User
+                                \####.|.####/
+                                 \ .´#|#`. /
+                   Communication  `. #|# .´ CPU wait
+                          alone     `.|.´
+                                 Communication
+                                    total
+
+        - Diversas situações desse gráfico podem representar diferentes
+          tipos de processamento. Por exemplo, um gráfico com CPU bound
+          (processamento intensivo de CPU):
+
+                                     CPU
+                                    total
+                                    .´|`.
+                        CPU alone .´##|  `. System
+                                 /####| .´ \
+            CPU + Communication /___##|#####\ User
+                                \    #|#    /
+                                 \ .´ | `. /
+                   Communication  `.  |  .´ CPU wait
+                          alone     `.|.´
+                                 Communication
+                                    total
+
+        - Um gráfico com IO bound (processamento intensivo de IO) fica
+          parecido, mas simétrico:
+
+                                     CPU
+                                    total
+                                    .´|`.
+                        CPU alone .´  |  `. System
+                                 / `. | .´ \
+            CPU + Communication /____#|#____\ User
+                                \    #|#####/
+                                 \####| `. /
+                   Communication  `.##|  .´ CPU wait
+                          alone     `.|.´
+                                 Communication
+                                    total
+
+        - Podemos ter um equilíbrio entre ambos os fatores:
+          processamento de informações vindas de entrada e saída.
+
+                                     CPU
+                                    total
+                                    .´|`.
+                        CPU alone .´  |  `. System
+                                 / `.#|#.´ \
+            CPU + Communication /____#|#____\ User
+                                \ ####|#### /
+                                 \ ###|### /
+                   Communication  `. #|# .´ CPU wait
+                          alone     `.|.´
+                                 Communication
+                                    total
+
+    - Ex: Kiviat de uma rede
+        - A situação ideal é a que temos taxa de transferência com uso
+          do link e confirmação máximas, com poucos pacotes errados,
+          duplicados e sem sobrecarregar o link da rede.
+
+                                 Throughput
+                                   .´|`.
+                  Link Overload  .´ #|# `.  Wrong packages
+                                |`. #|# .´|
+                                |  `#|#´  |
+                                | ###|### |
+                     Link Usage |##  |  ##| Acknowledgement
+                                 `.  |  .´
+                                   `.|.´
+                             Duplicated packages
