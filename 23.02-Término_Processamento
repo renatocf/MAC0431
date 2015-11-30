@@ -1,0 +1,24 @@
+Algoritmo para detecção de término de processamento
+=====================================================
+
+* Anel com duas passagens
+    - São usadso 2 estados para o token: preto e branco.
+    - Os processos também são coloridos de preto e branco.
+
+    - Algoritmo:
+        - Quando P0 termina, manda um token branco.
+
+        - Quando Pi termina, passa o token, como no caso anterior (branco).
+            - Pi só repassará o token quando terminar.
+
+        - A cor de Pi muda para preto se Pi envia uma tarefa para Pj, j < i.
+          Caso contrário, é branco.
+
+        - Um processo preto colore o token de preto.
+          Um processo branco mantém a cor do token.
+
+        - Pi vira branco quando envia o token.
+
+        - Quando P0 recebe um token preto envia um branco.
+
+    - O algoritmo termina quando P0 recebe um token branco.

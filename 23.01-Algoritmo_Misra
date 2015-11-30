@@ -1,0 +1,50 @@
+Algoritmo de Misra
+===================
+
+* O algoritmo de Misra é utilizado para garantir que um token rode sem a
+  necessidade de pensar em timeouts.
+
+* Tokens e variávies
+    - Os dois tokens são 'ping' e 'pong' - o primeiro inicializado com +1, e o
+      segundo com -1. O invariante deve ser que N_ping + N_pong = 0.
+
+    - Cada máquina terá APENAS uma variável: m_i, que armazena o ÚLTIMO valor
+      de 'ping' ou 'pong' visto. Se ao receber um token, 'm_i' tiver o mesmo
+      valor desse token, significa que o token rodou o anel inteiro, e portanto
+      esse token não cruzou com o outro (e o outro morreu).
+
+    - Algoritmo (especificado como protocolo)
+
+        - Ao receber (ping, n_ping)
+            if m_i == n_ping then           # pong is missing, because
+                                            # ping has the old value
+                n_ping ← n_ping + 1
+                n_pong ← -n_ping            # set new value for pong
+                m_i ← n_ping
+                send right (ping, n_ping)   # send both tokens
+                send left (pong, n_pong)
+            else
+                m_i ← n_ping                # store new expected value
+                send right (ping, n_ping)
+
+        - Ao receber (pong, n_pong)
+            if m_i == n_pong then           # ping is missing, because
+                                            # pong has the old value
+                n_pong ← n_pong - 1
+                n_ping ← -n_pong            # set new value for ping
+                m_i ← n_pong
+                send right (ping, n_ping)   # send both tokens
+                send left (pong, n_pong)
+            else
+                m_i ← n_pong                # store new expected value
+                send right (ping, n_ping)
+
+        - Quando encontra (ping, pong)
+            n_ping ← n_ping + 1
+            n_pong → n_pong - 1
+            m_i ← n_pong
+            send right (ping, n_ping)
+            send left (pong, n_pong)
+
+    - Condições do problema: assumimos que NO MÁXIMO 1 dos tokens irá morrer
+      a qualquer momento.
