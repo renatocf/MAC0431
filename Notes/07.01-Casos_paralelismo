@@ -1,10 +1,10 @@
 Análise de dependências
 ========================
 
-* Na última aula, vimos o conceito de 'embarasing parallel' - tarefas
+* Na última aula, vimos o conceito de 'embarassing parallel' - tarefas
   independentes que podem ser facilmente paralelizáveis.
     - Um exemplo clássico é o SETI@home, que era um protetor de tela que
-      utilizava o tempo ocioso de PCU de computadores para buscar
+      utilizava o tempo ocioso de CPU de computadores para buscar
       evidências de inteligência extraterrestre no ruído de
       radiotelescópios. Como cada filtragem e análise era independente,
       os computadores não precisavam se comunicar, e a distribuição era
