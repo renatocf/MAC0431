@@ -80,7 +80,7 @@ Revisão
         M → M (saída)
 
     - Apenas a dependência M → U precisa ser respeitada. As dependências
-      U → M e M → M podem ser resolvidas trocando os nomedas das
+      U → M e M → M podem ser resolvidas trocando os nome das
       variáveis.
 
     - O grafo de dependência tem relação com o escalonamento (que parte
@@ -112,7 +112,7 @@ Revisão
       para execução de instruções que geram paralelismo (sem usar o
       código diretamente).
 
-    - ALgumas das pragmas mais interessantes são:
+    - Algumas das pragmas mais interessantes são:
         - parallel (paraleliza um trecho de código)
         - atomic (seção crítica possivelmente redutível para instrução
           de hardware atômica)
@@ -121,3 +121,5 @@ Revisão
         - private (cada thread tem sua cópia)
         - shared (compartilhada entre threads)
         - schedule (escalonamento - static, dynamic, guided)
+
+    - Mais detalhes sobre pragmas podem ser vistos na [Página do OpenMP](https://www.openmp.org/specifications/)
